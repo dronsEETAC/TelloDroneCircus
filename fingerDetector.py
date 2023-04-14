@@ -85,8 +85,7 @@ class FingerDetector:
         else:
             return False
 
-    def detect(self, image):
-        level = "easy"
+    def detect(self, image, level):
         leftHandLandmarks, rightHandLandmarks, img = self.__prepare(image)
         res = ''
         if level == 'difficult':

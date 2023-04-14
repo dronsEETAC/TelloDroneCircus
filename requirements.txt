@@ -1,9 +1,9 @@
 tellopy~=0.6.0
-numpy~=1.23.1
+numpy
 av~=9.2.0
-opencv-python~=4.5.4.60
+opencv-python
 pynput~=1.7.6
-mediapipe~=0.9.1.0
+mediapipe
 simple_pid==1.0.1
 pygame~=2.1.2
 Pillow~=9.4.0

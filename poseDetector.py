@@ -217,14 +217,13 @@ class PoseDetector:
         else:
             return False
 
-    def detect(self, image):
-        level = "easy"
+    def detect(self, image, level):
         poseLandmarks, img = self.__prepare(image)
         res = ''
         if len(poseLandmarks) > 17:
             if level == 'difficult':
                 if self.__p0(poseLandmarks):
-                    res = 0
+                    res = 7
                 elif self.__p1(poseLandmarks):
                     res = 1
                 elif self.__p2(poseLandmarks):
@@ -234,38 +233,40 @@ class PoseDetector:
                 elif self.__p4(poseLandmarks):
                     res = 4
                 elif self.__p5(poseLandmarks):
-                    res = 5
-                elif self.__p6(poseLandmarks):
                     res = 6
+                elif self.__p6(poseLandmarks):
+                    res = 5
             else:
                 # to see what are the easy patterns see picture assets/poses_faciles.png
                 if ((poseLandmarks[12][1] < poseLandmarks[14][1])
                         and (poseLandmarks[14][1] < poseLandmarks[16][1])
                         and (poseLandmarks[11][1] < poseLandmarks[13][1])
                         and (poseLandmarks[13][1] < poseLandmarks[15][1])
-                        and (poseLandmarks[18][0] < poseLandmarks[17][0])):
-                    res = 0  # STOP
+                        and (poseLandmarks[18][0] < poseLandmarks[17][0])
+                        and (poseLandmarks[17][0] > poseLandmarks[13][0])
+                        and (poseLandmarks[18][0] < poseLandmarks[14][0])):
+                    res = 6
                 elif ((poseLandmarks[12][1] < poseLandmarks[14][1])
                       and (poseLandmarks[14][1] < poseLandmarks[16][1])
                       and (poseLandmarks[11][1] < poseLandmarks[13][1])
                       and (poseLandmarks[13][1] < poseLandmarks[15][1])
                       and (poseLandmarks[18][0] > poseLandmarks[17][0])):
-                    res = 5  # DROP
+                    res = 2
                 elif ((poseLandmarks[14][1] > poseLandmarks[12][1])
                       and (poseLandmarks[14][1] > poseLandmarks[16][1])
                       and (poseLandmarks[13][1] > poseLandmarks[11][1])
                       and (poseLandmarks[13][1] > poseLandmarks[15][1])
-                      and (poseLandmarks[18][0] < poseLandmarks[17][0])):
-                    res = 6  # RETURN
+                      and (poseLandmarks[18][0] > poseLandmarks[17][0])):
+                    res = 7
 
                 elif (poseLandmarks[12][1] < poseLandmarks[14][1]) and (poseLandmarks[11][1] > poseLandmarks[13][1]):
-                    res = 3  # EAST
+                    res = 3
                 elif (poseLandmarks[12][1] > poseLandmarks[14][1]) and (poseLandmarks[11][1] < poseLandmarks[13][1]):
-                    res = 4  # WEST
+                    res = 4
                 elif (poseLandmarks[12][1] > poseLandmarks[14][1]) and (poseLandmarks[11][1] > poseLandmarks[13][1]):
                     if (poseLandmarks[18][0] > poseLandmarks[17][0]):
-                        res = 2  # SOUTH
+                        res = 1
                     if (poseLandmarks[18][0] < poseLandmarks[17][0]):
-                        res = 1  # NORTH
+                        res = 5
 
         return res, img

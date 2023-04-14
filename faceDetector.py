@@ -170,7 +170,7 @@ class FaceDetector:
 
             if (left_eye_height / face_height) * 100 > 5.5:
                 leftEye = 'Very Open'
-            elif (left_eye_height / face_height) * 100 > 3:
+            elif (left_eye_height / face_height) * 100 > 4:
                 leftEye = 'Open'
             else:
                 leftEye = 'Closed'
@@ -189,7 +189,7 @@ class FaceDetector:
 
 
 
-    def detect(self, image):
+    def detect(self, image, level):
         """Returns the pose made by the face"""
         faceLandmarks, img = self.__prepare(image)
 
@@ -200,19 +200,20 @@ class FaceDetector:
             mouth, leftEye, rightEye = self.isOpen(image, self.results)
             inclination = self.inclinacion(image, self.results)
             if (inclination == 'left'):
-                code = 3  # east
+                code = 3  # izquierda
             elif (inclination == 'right'):
-                code = 4  # west
-            elif (leftEye == 'Closed'  and mouth == 'Open' and inclination == 'normal'):
-                code = 1 #NORTH
+                code = 4  # derech
+            elif (leftEye == 'Very Open' and rightEye == 'Very Open' and mouth == 'Very Open' and inclination == 'normal'):
+                code = 7  # flip
+            elif (leftEye == 'Open' and rightEye == 'Open' and mouth == 'Closed' and inclination == 'normal'):
+                code = 1 # adelante
             elif (leftEye == 'Very Open' and rightEye == 'Very Open' and mouth == 'Closed' and inclination == 'normal'):
-                code = 2  #south
-            elif ( leftEye == 'Open' and rightEye == 'Closed' and  mouth == 'Very Open' and inclination == 'normal'):
-                code = 5  #drop
+                code = 2  #atras
+            elif ( mouth == 'Open' and inclination == 'normal'):
+                code = 5  #Arriba
 
-            elif ( leftEye == 'Closed' and rightEye == 'Open' and  mouth == 'Very Open' and inclination == 'normal'):
-                code = 0  #stop
-            elif ( leftEye== 'Very Open'  and  rightEye== 'Very Open' and  mouth == 'Very Open' and inclination == 'normal'):
-                code = 6  #return
+            elif (mouth == 'Very Open' and inclination == 'normal'):
+                code = 6  #abajo
+
         return code, img
 
