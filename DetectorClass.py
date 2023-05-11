@@ -89,7 +89,7 @@ class MovementGenerator:
 
         return n
 
-
+'''
 class Scene:
     def Open(self, master, callback):
         # abre un formulario para que el usuario introduzca los datos del escenario
@@ -119,31 +119,36 @@ class Scene:
         anchuraLbl.grid(row=1, column=0, padx=5, pady=25, sticky=N + S + E + W)
         self.anchuraEntry = tk.Entry(self.mainFrame)
         self.anchuraEntry.grid(row=1, column=1, padx=5, pady=25, sticky=N + S + E + W)
+        self.anchuraEntry.insert (0,'4')
 
         alturaLbl = tk.Label(self.mainFrame, text="Altura")
         alturaLbl.grid(row=2, column=0, padx=5, pady=25, sticky=N + S + E + W)
         self.alturaEntry = tk.Entry(self.mainFrame)
         self.alturaEntry.grid(row=2, column=1, padx=5, pady=25, sticky=N + S + E + W)
+        self.alturaEntry.insert (0,'4')
 
         profundidadLbl = tk.Label(self.mainFrame, text="Profundidad")
         profundidadLbl.grid(row=3, column=0, padx=5, pady=25, sticky=N + S + E + W)
         self.profundidadEntry = tk.Entry(self.mainFrame)
         self.profundidadEntry.grid(row=3, column=1, padx=5, pady=25, sticky=N + S + E + W)
+        self.profundidadEntry.insert (0,'4')
         # alarma es el tiempo que tiene el jugador para acertar la pose. A mitad de ese tiempo
         # la indicación se pondrá en rojo.
         alarmaLbl = tk.Label(self.mainFrame, text="Alarma")
         alarmaLbl.grid(row=4, column=0, padx=5, pady=25, sticky=N + S + E + W)
         self.alarmaEntry = tk.Entry(self.mainFrame)
+        self.alarmaEntry.insert(0, '8')
         self.alarmaEntry.grid(row=4, column=1, padx=5, pady=25, sticky=N + S + E + W)
+
 
 
         self.image = Image.open("assets/escenario.png")
         self.image = self.image.resize((300, 300), Image.ANTIALIAS)
         self.bg = ImageTk.PhotoImage(self.image)
-        canvas1 = Canvas(self.mainFrame, width=300, height=300)
-        canvas1.grid(row=1, column=2, rowspan=4, padx=20, pady=20, sticky=N + S + E + W)
+        canvas = Canvas(self.mainFrame, width=300, height=300)
+        canvas.grid(row=1, column=2, rowspan=4, padx=20, pady=20, sticky=N + S + E + W)
 
-        canvas1.create_image(0, 0, image=self.bg, anchor="nw")
+        canvas.create_image(0, 0, image=self.bg, anchor="nw")
 
         closeBtn = tk.Button(self.mainFrame, text="Cerrar", bg='#F57328', fg="white",
                                   command=self.closeScenario)
@@ -157,8 +162,11 @@ class Scene:
                 int(self.alarmaEntry.get())
         )
         self.newWindow.destroy()
+'''
 class DetectorClass:
-    def __init__(self, drone, escenario):
+    def __init__(self, drone, escenario, poseList, photos):
+        self.poseList = poseList
+        self.photos = photos
         self.direction = None
         self.returning = None
         self.RTL = False
@@ -195,6 +203,7 @@ class DetectorClass:
 
     def easy (self):
 
+        self.fatherFrame.geometry("200x700")
 
         self.level = 'easy'
         self.bottomFrame['text'] = 'Fácil'
@@ -209,31 +218,130 @@ class DetectorClass:
         else:
             self.image = Image.open("assets/caras_faciles_v.png")
 
-        self.image = self.image.resize((120, 450), Image.ANTIALIAS)
+        self.image = self.image.resize((160, 450), Image.ANTIALIAS)
         self.bg = ImageTk.PhotoImage(self.image)
+        if self.canvasFrame != None:
+            self.canvasFrame.pack_forget()
 
-        self.canvas1.create_image(0, 0, image=self.bg, anchor="nw")
+        self.canvas.create_image(0, 0, image=self.bg, anchor="nw")
+        self.canvas.pack(fill="both", expand=True)
 
     def difficult(self):
-
-        self.level = 'difficult'
-        self.bottomFrame['text'] = 'Difícil'
-        self.easyBtn['bg'] = '#FFE9A0'
-        self.easyBtn['fg'] = 'black'
-        self.difficultBtn['bg'] = '#367E18'
-        self.difficultBtn['fg'] = 'white'
-
-        if self.mode == 'fingers':
-            self.image = Image.open("assets/dedos_faciles_v.png")
-        elif self.mode == 'pose':
-            self.image = Image.open("assets/poses_dificiles_v.png")
+        if self.poseList == None:
+            messagebox.showwarning("Error", "No has definido tus poses", parent=self.master)
         else:
-            self.image = Image.open("assets/caras_faciles_v.png")
+            self.level = 'difficult'
+            self.bottomFrame['text'] = 'Tus poses'
+            self.easyBtn['bg'] = '#FFE9A0'
+            self.easyBtn['fg'] = 'black'
+            self.difficultBtn['bg'] = '#367E18'
+            self.difficultBtn['fg'] = 'white'
 
-        self.image = self.image.resize((120, 450), Image.ANTIALIAS)
-        self.bg = ImageTk.PhotoImage(self.image)
+            if self.mode == 'fingers':
+                self.image = Image.open("assets/dedos_faciles_v.png")
+            elif self.mode == 'pose':
+                self.image = Image.open("assets/poses_dificiles_v.png")
+            else:
+                self.image = Image.open("assets/caras_faciles_v.png")
 
-        self.canvas1.create_image(0, 0, image=self.bg, anchor="nw")
+            self.image = self.image.resize((160, 450), Image.ANTIALIAS)
+            self.bg = ImageTk.PhotoImage(self.image)
+
+            self.canvas.create_image(0, 0, image=self.bg, anchor="nw")
+
+
+
+
+            self.canvas.pack_forget()
+            #self.fatherFrame.geometry("150x650")
+            self.fatherFrame.geometry("360x700")
+
+
+            self.canvasFrame = Frame (self.bottomFrame)
+            self.canvasFrame.columnconfigure(0, weight=1)
+            self.canvasFrame.columnconfigure(1, weight=1)
+
+            self.canvasFrame.rowconfigure(0, weight=1)
+            self.canvasFrame.rowconfigure(1, weight=1)
+            self.canvasFrame.rowconfigure(2, weight=1)
+
+            self.canvasFrame.rowconfigure(3, weight=1)
+            self.canvasFrame.rowconfigure(4, weight=1)
+            self.canvasFrame.rowconfigure(5, weight=1)
+
+            sizeW = 160
+            sizeH = 120
+            self.imageAdelante = Image.open("assets/adelante.png")
+            self.imageAdelante = self.imageAdelante.resize((100, 40), Image.ANTIALIAS)
+            self.bgAdelante = ImageTk.PhotoImage(self.imageAdelante)
+            self.canvas1F = Canvas(self.canvasFrame, width=100, height=40)
+            self.canvas1F.grid(row=0, column=0, padx=5, pady=5, sticky=N + S + E + W)
+            self.canvas1F.create_image(0, 0, image=self.bgAdelante, anchor=tk.NW)
+
+            self.canvas1 = Canvas(self.canvasFrame, width=sizeW, height=sizeH, bg='white')
+            self.canvas1.grid(row=1, column=0, padx=5, pady=5, sticky=N + S + E + W)
+            self.canvas1.create_image(0, 0, image=self.photos[0], anchor=tk.NW)
+
+            self.imageAtras = Image.open("assets/atras.png")
+            self.imageAtras = self.imageAtras.resize((100, 40), Image.ANTIALIAS)
+            self.bgAtras = ImageTk.PhotoImage(self.imageAtras)
+            self.canvas2F = Canvas(self.canvasFrame, width=100, height=40)
+            self.canvas2F.grid(row=0, column=1, padx=5, pady=5, sticky=N + S + E + W)
+            self.canvas2F.create_image(0, 0, image=self.bgAtras, anchor=tk.NW)
+
+            self.canvas2 = Canvas(self.canvasFrame, width=sizeW, height=sizeH, bg='white')
+            self.canvas2.grid(row=1, column=1,  padx=5, pady=5, sticky=N + S + E + W)
+            self.canvas2.create_image(0, 0, image=self.photos[1], anchor=tk.NW)
+
+            self.imageIzquierda = Image.open("assets/izquierda.png")
+            self.imageIzquierda = self.imageIzquierda.resize((100, 40), Image.ANTIALIAS)
+            self.bgIzquierda = ImageTk.PhotoImage(self.imageIzquierda)
+            self.canvas3F = Canvas(self.canvasFrame, width=100, height=40)
+            self.canvas3F.grid(row=2, column=0, padx=5, pady=(5,0), sticky=N + S + E + W)
+            self.canvas3F.create_image(0, 0, image=self.bgIzquierda, anchor=tk.NW)
+
+            self.canvas3 = Canvas(self.canvasFrame, width=sizeW, height=sizeH, bg='white')
+            self.canvas3.grid(row=3, column=0,  padx=5, pady=(0,5), sticky=N + S + E + W)
+            self.canvas3.create_image(0, 0, image=self.photos[2], anchor=tk.NW)
+
+            self.imageDerecha = Image.open("assets/derecha.png")
+            self.imageDerecha = self.imageDerecha.resize((100, 40), Image.ANTIALIAS)
+            self.bgDerecha = ImageTk.PhotoImage(self.imageDerecha)
+            self.canvas4F = Canvas(self.canvasFrame, width=100, height=40)
+            self.canvas4F.grid(row=2, column=1, padx=5, pady=(5,0) , sticky=N + S + E + W)
+            self.canvas4F.create_image(0, 0, image=self.bgDerecha, anchor=tk.NW)
+
+            self.canvas4 = Canvas(self.canvasFrame, width=sizeW, height=sizeH, bg='white')
+            self.canvas4.grid(row=3, column=1,  padx=5, pady=(0,5), sticky=N + S + E + W)
+            self.canvas4.create_image(0, 0, image=self.photos[3], anchor=tk.NW)
+
+            self.imageArriba = Image.open("assets/arriba.png")
+            self.imageArriba = self.imageArriba.resize((100, 40), Image.ANTIALIAS)
+            self.bgArriba = ImageTk.PhotoImage(self.imageArriba)
+            self.canvas5F = Canvas(self.canvasFrame, width=100, height=40)
+            self.canvas5F.grid(row=4, column=0, padx=5, pady=(5, 0), sticky=N + S + E + W)
+            self.canvas5F.create_image(0, 0, image=self.bgArriba, anchor=tk.NW)
+
+            self.canvas5 = Canvas(self.canvasFrame, width=sizeW, height=sizeH, bg='white')
+            self.canvas5.grid(row=5, column=0, padx=5, pady=(0,5), sticky=N + S + E + W)
+            self.canvas5.create_image(0, 0, image=self.photos[4], anchor=tk.NW)
+
+            self.imageAbajo = Image.open("assets/abajo.png")
+            self.imageAbajo = self.imageAbajo.resize((100, 40), Image.ANTIALIAS)
+            self.bgAbajo = ImageTk.PhotoImage(self.imageAbajo)
+            self.canvas6F = Canvas(self.canvasFrame, width=100, height=40)
+            self.canvas6F.grid(row=4, column=1, padx=5, pady=(5, 0), sticky=N + S + E + W)
+            self.canvas6F.create_image(0, 0, image=self.bgAbajo, anchor=tk.NW)
+
+            self.canvas6 = Canvas(self.canvasFrame, width=sizeW, height=sizeH, bg='white')
+            self.canvas6.grid(row=5, column=1, padx=5, pady=(0,5), sticky=N + S + E + W)
+            self.canvas6.create_image(0, 0, image=self.photos[5], anchor=tk.NW)
+
+            self.canvasFrame.pack(fill="both", expand=True)
+
+
+
+
 
 
     def buildFrame(self, fatherFrame, mode):
@@ -244,9 +352,9 @@ class DetectorClass:
         self.cap = cv2.VideoCapture(0)
 
         if self.mode == 'fingers':
-            self.detector = FingerDetector()
+            self.detector = FingerDetector(self.poseList)
         elif self.mode == 'pose':
-            self.detector = PoseDetector()
+            self.detector = PoseDetector(self.poseList)
         else:
             self.detector = FaceDetector()
 
@@ -267,7 +375,7 @@ class DetectorClass:
         self.easyBtn = tk.Button(self.topFrame, text="Fácil", bg='#367E18', fg="white",
                                   command=self.easy)
         self.easyBtn.grid(row=0, column=0, padx=5, pady=5, sticky=N + S + E + W)
-        self.difficultBtn = tk.Button(self.topFrame, text="Difícil", bg='#FFE9A0', fg="black",
+        self.difficultBtn = tk.Button(self.topFrame, text="Tus poses", bg='#FFE9A0', fg="black",
                                      command=self.difficult)
         self.difficultBtn.grid(row=0, column=1, padx=5, pady=5, sticky=N + S + E + W)
 
@@ -316,13 +424,14 @@ class DetectorClass:
         else:
             self.image = Image.open("assets/caras_faciles_v.png")
 
-        self.image = self.image.resize((120, 450), Image.ANTIALIAS)
+        self.image = self.image.resize((160, 450), Image.ANTIALIAS)
         self.bg = ImageTk.PhotoImage(self.image)
-        self.canvas1 = Canvas(self.bottomFrame, width=120, height=450)
-        self.canvas1.pack(fill="both", expand=True)
-        self.canvas1.create_image(0, 0, image=self.bg, anchor="nw")
+        self.canvas = Canvas(self.bottomFrame, width=160, height=450)
+        self.canvas.pack(fill="both", expand=True)
+        self.canvas.create_image(0, 0, image=self.bg, anchor="nw")
 
         self.bottomFrame.grid(row=2, column=0, padx=5, pady=5, sticky=N + S + E + W)
+        self.canvasFrame = None
 
         return self.master
 
@@ -332,10 +441,11 @@ class DetectorClass:
         self.altura = altura
         self.profundidad = profundidad
         self.alarma = alarma
+    '''
     def configureScenario (self):
         scenario = Scene()
         scenario.Open (self.master, self.guardar)
-
+    '''
     def connect(self):
         self.closeButton2.grid_forget()
         self.connected = True
@@ -425,6 +535,7 @@ class DetectorClass:
                 continue
 
             code, img = self.detector.detect(image, self.level)
+            print ('detecto ', code)
             img = cv2.resize(img, (800, 600))
             img = cv2.flip(img, 1)
 

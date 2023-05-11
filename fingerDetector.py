@@ -1,11 +1,16 @@
 import cv2
 import mediapipe as mp
+from Detector import Detector
 
 
 # https://google.github.io/mediapipe/solutions/hands.html
 
 class FingerDetector:
-    def __init__(self):
+    def __init__(self, poseList):
+        self.poseList = poseList
+        if self.poseList != None:
+            self.detector = Detector('hand')
+            self.detector.storePoses(self.poseList)
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_drawing_styles = mp.solutions.drawing_styles
         self.mp_hands = mp.solutions.hands
@@ -86,20 +91,28 @@ class FingerDetector:
             return False
 
     def detect(self, image, level):
-        leftHandLandmarks, rightHandLandmarks, img = self.__prepare(image)
-        res = ''
         if level == 'difficult':
+            res = ''
+            #res, img = self.detect(image, 50)
+            image = cv2.flip(image, 1)
+            res, img = self.detector.detect(image, 50)
+            img = cv2.flip(img, 1)
+            img = cv2.resize(img, (800, 600))
+
+            #res, img = self.detector.detect(image, 50)
+            '''
             if self.__poseD1(leftHandLandmarks, rightHandLandmarks):
                 res = 'Pose D11111'
-            '''elif self.__poseD2( leftHandLandmarks, rightHandLandmarks):
-                res = 'Pose D22222'
-            elif self.__poseD3( leftHandLandmarks, rightHandLandmarks):
-                res = 'Pose D333333'''
+        
             return res, img
+            '''
+            return res, img
+
         else:
             # returns the number of risen fingers
             # ATTENTION: WE DO NOT TAKE INTO ACCOUNT THE THUMB FINGER
             # Initially set finger count to 0 for each cap
+            leftHandLandmarks, rightHandLandmarks, img = self.__prepare(image)
             fingerCount = 0
             if len(leftHandLandmarks) > 0:
                 if leftHandLandmarks[8][1] < leftHandLandmarks[6][1]:  # Index finger

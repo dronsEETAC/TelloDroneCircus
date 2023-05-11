@@ -1,0 +1,300 @@
+import time
+from tkinter import *
+import tkinter as tk
+
+import requests
+from tkinter import font
+from PIL import Image, ImageTk
+from tkvideo import tkvideo
+from DetectorClass import DetectorClass
+from FollowClass import FollowDetector
+import BodyControlClass
+from djitellopy import Tello
+from PoseGeneratorDetectorClass import PoseGenerarorDetector
+
+class Scene:
+    def Open(self, master, callback):
+        self.callback = callback
+        self.newWindow = Toplevel(master)
+
+        self.newWindow.title("Scene")
+        self.newWindow.geometry("700x500")
+        self.mainFrame = tk.Frame(self.newWindow)
+        self.mainFrame.pack()
+        self.mainFrame.rowconfigure(0, weight=1)
+        self.mainFrame.rowconfigure(1, weight=1)
+        self.mainFrame.rowconfigure(2, weight=1)
+        self.mainFrame.rowconfigure(3, weight=1)
+        self.mainFrame.rowconfigure(4, weight=1)
+        self.mainFrame.rowconfigure(5, weight=1)
+        self.mainFrame.columnconfigure(1, weight=1)
+        self.mainFrame.columnconfigure(2, weight=1)
+        self.mainFrame.columnconfigure(3, weight=1)
+        titleLbl = tk.Label (self.mainFrame,text = "Configuración del escenario")
+        titleLbl.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky=N + S + E + W)
+
+        anchuraLbl = tk.Label(self.mainFrame, text="Anchura")
+        anchuraLbl.grid(row=1, column=0, padx=5, pady=25, sticky=N + S + E + W)
+        self.anchuraEntry = tk.Entry(self.mainFrame)
+        self.anchuraEntry.grid(row=1, column=1, padx=5, pady=25, sticky=N + S + E + W)
+        self.anchuraEntry.insert(0,'4')
+
+        alturaLbl = tk.Label(self.mainFrame, text="Altura")
+        alturaLbl.grid(row=2, column=0, padx=5, pady=25, sticky=N + S + E + W)
+        self.alturaEntry = tk.Entry(self.mainFrame)
+        self.alturaEntry.grid(row=2, column=1, padx=5, pady=25, sticky=N + S + E + W)
+        self.alturaEntry.insert(0, '4')
+
+        profundidadLbl = tk.Label(self.mainFrame, text="Profundidad")
+        profundidadLbl.grid(row=3, column=0, padx=5, pady=25, sticky=N + S + E + W)
+        self.profundidadEntry = tk.Entry(self.mainFrame)
+        self.profundidadEntry.grid(row=3, column=1, padx=5, pady=25, sticky=N + S + E + W)
+        self.profundidadEntry.insert(0, '4')
+
+        alarmaLbl = tk.Label(self.mainFrame, text="Alarma")
+        alarmaLbl.grid(row=4, column=0, padx=5, pady=25, sticky=N + S + E + W)
+        self.alarmaEntry = tk.Entry(self.mainFrame)
+        self.alarmaEntry.grid(row=4, column=1, padx=5, pady=25, sticky=N + S + E + W)
+        self.alarmaEntry.insert(0, '8')
+
+
+        self.image = Image.open("assets/escenario.png")
+        self.image = self.image.resize((300, 300), Image.ANTIALIAS)
+        self.bg = ImageTk.PhotoImage(self.image)
+        canvas1 = Canvas(self.mainFrame, width=300, height=300)
+        canvas1.grid(row=1, column=2, rowspan=4, padx=20, pady=20, sticky=N + S + E + W)
+
+        canvas1.create_image(0, 0, image=self.bg, anchor="nw")
+
+        closeBtn = tk.Button(self.mainFrame, text="Cerrar", bg='#F57328', fg="white",
+                                  command=self.closeScenario)
+        closeBtn.grid(row=5, column=0, columnspan=3, padx=5, pady=5, sticky=N + S + E + W)
+
+    def closeScenario (self):
+        self.callback(int(self.anchuraEntry.get()), \
+                int(self.alturaEntry.get()), \
+                int(self.profundidadEntry.get()), \
+                int(self.alarmaEntry.get())
+        )
+        self.newWindow.destroy()
+'''
+class Circo(Frame):
+    def __init__(self, parent=None):
+        Frame.__init__(self, parent)
+        self.parent = parent
+        self.pack()
+        self.make_widgets()
+
+    def make_widgets(self):
+        # don't assume that self.parent is a root window.
+        # instead, call `winfo_toplevel to get the root window
+        self.winfo_toplevel().title("Circo de drones")
+'''
+class CircoPoses:
+
+    def Open (self, master):
+        self.drone = Tello()
+        self.master = master
+        self.poseList = None
+        self.photos = None
+
+        self.configure()
+        '''
+        self.mixer.music.load('assets/circo.mp3')
+        self.mixer.music.play(10)
+
+        self.newWindow = Toplevel(self.master)
+
+        self.newWindow.geometry("770x525")
+
+        self.image = Image.open("assets/entrada.png")
+        self.image = self.image.resize((770, 525), Image.ANTIALIAS)
+
+        self.bg = ImageTk.PhotoImage(self.image)
+        canvas1 = Canvas(self.newWindow, width=770, height=525)
+        canvas1.pack(fill="both", expand=True)
+        canvas1.create_image(0, 0, image=self.bg, anchor="nw")
+
+        myFont = font.Font(family='Arial', size=18, weight='bold')
+        drone = Tello()
+        configuracion_escenario = [0,0,0,0]
+
+        enterButton = Button(self.newWindow, text="El circo de las poses", height=1, bg='#367E18', fg='#FFE9A0', width=12,
+                             command=self.configure)
+        enterButton['font'] = myFont
+        enterButton.place(x=300, y=300, anchor="nw")
+        # enterButton_canvas = canvas1.create_window(770 / 2, 525 / 2 + 50, window=enterButton)
+
+        # Execute tkinter
+        self.newWindow.mainloop()
+        '''
+
+
+    def follow(self):
+        followWindow = Toplevel(self.circusWindow)
+        followWindow.title("Sígueme")
+        followWindow.geometry("450x650")
+        # Presentation mode
+        BodyControlClass.main()
+        # detector = FollowDetector()
+        # frame = detector.buildFrame(newWindow)
+        # frame.pack(fill="both", expand="yes", padx=10, pady=10)
+        followWindow.mainloop()
+
+
+    def fingers(self):
+
+        fingerWindow = Toplevel(self.circusWindow)
+        fingerWindow.title("Dedos")
+        fingerWindow.geometry("200x700")
+        detector = DetectorClass(self.drone, self.configuracion_escenario, self.poseList, self.photos)
+        frame = detector.buildFrame(fingerWindow, 'fingers')
+        frame.pack(fill="both", expand="yes")
+        fingerWindow.mainloop()
+
+
+    def pose(self):
+        poseWindow = Toplevel(self.circusWindow)
+        poseWindow.title("Pose")
+        poseWindow.geometry("200x700")
+        detector = DetectorClass(self.drone, self.configuracion_escenario,self.poseList, self.photos)
+        frame = detector.buildFrame(poseWindow, 'pose')
+        frame.pack(fill="both", expand="yes")
+        poseWindow.mainloop()
+
+
+    def faces(self):
+
+
+        newWindow = Toplevel(self.circusWindow)
+        newWindow.title("Pose")
+        newWindow.geometry("450x650")
+        detector = DetectorClass(self.drone, self.configuracion_escenario)
+        frame = detector.buildFrame(newWindow, 'face')
+        frame.pack(fill="both", expand="yes", padx=10, pady=10)
+        newWindow.mainloop()
+
+    def bye(self):
+        bye = Toplevel(self.circusWindow)
+        bye.geometry("770x525")
+
+        self.image = Image.open("assets/bye.png")
+        self.image = self.image.resize((770, 525), Image.ANTIALIAS)
+        self.bg = ImageTk.PhotoImage(self.image)
+        canvas2 = Canvas(bye, width=770, height=525)
+        canvas2.pack(fill="both", expand=True)
+        canvas2.create_image(0, 0, image=self.bg, anchor="nw")
+
+        bye.mainloop()
+
+
+    def empezar(self):
+        print ('voy a empezar')
+        self.circusWindow = Toplevel(self.configurationWindow)
+        self.circusWindow.title("Selecciona un acto")
+        self.circusWindow.geometry("800x600")
+        self.circusWindow.columnconfigure(0, weight=1)
+        self.circusWindow.columnconfigure(1, weight=1)
+        self.circusWindow.columnconfigure(2, weight=1)
+        self.circusWindow.columnconfigure(3, weight=1)
+        self.circusWindow.rowconfigure(0, weight=1)
+        self.circusWindow.rowconfigure(1, weight=1)
+
+        self.image2 = Image.open("assets/circoPoses.png")
+        self.image2 = self.image2.resize((800, 520), Image.ANTIALIAS)
+        self.bg2 = ImageTk.PhotoImage(self.image2)
+        canvas2 = Canvas(self.circusWindow, width=800, height=520)
+        canvas2.grid(row=0, column=0, columnspan=4, padx=5, pady=5, sticky=N + S + E + W)
+        canvas2.create_image(0, 0, image=self.bg2, anchor="nw")
+        myFont4 = font.Font(family='Arial', size=12, weight='bold')
+        followmeButton = Button(self.circusWindow, text="Sígueme", height=1, bg='#367E18', fg='#FFE9A0', width=8, command=self.follow)
+        followmeButton.place( x=50, y=480, anchor="nw")
+        followmeButton['font'] = myFont4
+        poseButton = Button(self.circusWindow, text="Poses", height=1, bg='#367E18', fg='#FFE9A0', width=8, command=self.pose)
+        poseButton.place( x=450, y=480, anchor="nw")
+        poseButton['font'] = myFont4
+        fingersButton = Button(self.circusWindow, text="Dedos", height=1, bg='#367E18', fg='#FFE9A0', width=8,
+                               command=self.fingers)
+        fingersButton.place( x=300, y=480, anchor="nw")
+        fingersButton['font'] = myFont4
+
+        facesButton = Button(self.circusWindow, text="Caras", height=1, bg='#367E18', fg='#FFE9A0', width=8, command=self.faces)
+        facesButton.place( x=650, y=480, anchor="nw")
+        facesButton['font'] = myFont4
+
+        byeButton = Button(self.circusWindow, text="Salir", height=1, bg='#FFE9A0', fg='#367E18', command=self.bye)
+        byeButton.grid(row=1, column=0, columnspan=4, padx=5, pady=5, sticky=N + S + E + W)
+        byeButton['font'] = myFont4
+        self.circusWindow.mainloop()
+
+    def guardar (self, anchura, altura, profundidad, alarma):
+        self.configuracion_escenario = [anchura, altura, profundidad, alarma]
+
+    def configureScenario (self):
+        scenario = Scene()
+        scenario.Open (self.configurationWindow, self.guardar)
+
+    def storePoses (self, poseList, photos):
+        print ('ya tengo las poses ', poseList)
+        self.poseList = poseList
+        self.photos = photos
+        self.createWindow.destroy()
+
+    def createPoses (self):
+        poseGeneratorDetector = PoseGenerarorDetector()
+        self.createWindow = Toplevel(self.configurationWindow)
+        self.createWindow.geometry('480x480')
+        frame = poseGeneratorDetector.BuildFrame(self.createWindow, self.storePoses)
+        frame.pack(fill=BOTH, expand=True)
+        self.createWindow.mainloop()
+
+    def connect(self):
+        print ('aaaaaaa')
+        self.drone.connect()
+        self.batteryLbl['text'] = "Nivel de bateria: " + str (self.drone.get_battery())
+
+
+    def configure (self):
+        myFont2 = font.Font(family='Arial', size=10, weight='bold')
+
+        self.configurationWindow = Toplevel(self.master)
+        self.configurationWindow.title("Configurar y conectar")
+        self.configurationWindow.geometry("800x600")
+        self.configurationWindow.columnconfigure(0, weight=1)
+        self.configurationWindow.columnconfigure(1, weight=1)
+        self.configurationWindow.columnconfigure(2, weight=1)
+        self.configurationWindow.columnconfigure(3, weight=1)
+
+        self.configurationWindow.rowconfigure(0, weight=1)
+
+
+        self.image2 = Image.open("assets/gallery3.png")
+        self.image2 = self.image2.resize((800, 520), Image.ANTIALIAS)
+        self.bg2 = ImageTk.PhotoImage(self.image2)
+        canvas2 = Canvas(self.configurationWindow, width=800, height=520)
+        canvas2.grid(row=0, column=0, columnspan=4, padx=5, pady=5, sticky=N + S + E + W)
+        canvas2.create_image(0, 0, image=self.bg2, anchor="nw")
+
+        escenarioButton = Button(self.configurationWindow, text="Configura escenario", height=1, bg='#367E18', fg='#FFE9A0', command=self.configureScenario)
+        escenarioButton.place( x=30, y=480, anchor="nw")
+        escenarioButton['font'] = myFont2
+
+        definePosesButton = Button(self.configurationWindow, text="Crea tus poses", height=1, bg='#367E18',
+                                 fg='#FFE9A0', command=self.createPoses)
+        definePosesButton.place(x=200, y=480, anchor="nw")
+        definePosesButton['font'] = myFont2
+
+        connectButton = Button(self.configurationWindow, text="Conecta con el dron", height=1, bg='#367E18', fg='#FFE9A0', command=self.connect)
+        connectButton.place( x=330, y=480, anchor="nw")
+        connectButton['font'] = myFont2
+
+        self.batteryLbl = Label (self.configurationWindow, text= "Nivel de bateria: ????")
+        self.batteryLbl.place( x=480, y=480, anchor="nw")
+        self.batteryLbl['font'] = myFont2
+
+
+        empezarButton = Button(self.configurationWindow, text="Empezar expectáculo", height=1, bg='#367E18', fg='#FFE9A0', command=self.empezar)
+        empezarButton.place( x=640, y=480, anchor="nw")
+        empezarButton['font'] = myFont2
+
+        self.configurationWindow.mainloop()

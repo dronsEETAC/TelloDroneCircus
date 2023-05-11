@@ -1,11 +1,20 @@
 import cv2
 import mediapipe as mp
+from Detector import Detector
 
 
 # https://google.github.io/mediapipe/solutions/pose
 
 class PoseDetector:
-    def __init__(self):
+    def __init__(self, poseList):
+        self.poseList = poseList
+        if self.poseList != None:
+
+            if len(self.poseList[0]) == 13:
+                self.detector = Detector('half body')
+            else:
+                self.detector = Detector('full body')
+            self.detector.storePoses(self.poseList)
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_drawing_styles = mp.solutions.drawing_styles
         self.mp_pose = mp.solutions.pose
@@ -220,8 +229,9 @@ class PoseDetector:
     def detect(self, image, level):
         poseLandmarks, img = self.__prepare(image)
         res = ''
-        if len(poseLandmarks) > 17:
+        if len(poseLandmarks) >= 14:
             if level == 'difficult':
+                '''
                 if self.__p0(poseLandmarks):
                     res = 7
                 elif self.__p1(poseLandmarks):
@@ -236,6 +246,13 @@ class PoseDetector:
                     res = 6
                 elif self.__p6(poseLandmarks):
                     res = 5
+                '''
+                image = cv2.flip(image, 1)
+                res, img = self.detector.detect(image, 50)
+                print ('detecto ', res)
+                img = cv2.flip(img, 1)
+                img = cv2.resize(img, (800, 600))
+
             else:
                 # to see what are the easy patterns see picture assets/poses_faciles.png
                 if ((poseLandmarks[12][1] < poseLandmarks[14][1])
