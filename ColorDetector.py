@@ -64,8 +64,10 @@ class ColorDetector:
     def DetectColor(self, frame):
 
 
+
         # Convert BGR to HSV
         hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+        print (hsv[720 // 2, 480 // 2][0])
 
         marge = 5
 

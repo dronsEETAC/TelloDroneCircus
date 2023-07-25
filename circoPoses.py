@@ -169,7 +169,7 @@ class CircoPoses:
         newWindow = Toplevel(self.circusWindow)
         newWindow.title("Pose")
         newWindow.geometry("450x650")
-        detector = DetectorClass(self.drone, self.configuracion_escenario)
+        detector = DetectorClass(self.drone, self.configuracion_escenario, None, None)
         frame = detector.buildFrame(newWindow, 'face')
         frame.pack(fill="both", expand="yes", padx=10, pady=10)
         newWindow.mainloop()
