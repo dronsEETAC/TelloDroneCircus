@@ -3,7 +3,7 @@ from tkinter import *
 import tkinter as tk
 
 import requests
-from tkinter import font
+from tkinter import font, simpledialog
 from PIL import Image, ImageTk
 from tkvideo import tkvideo
 from DetectorClass import DetectorClass
@@ -90,6 +90,42 @@ class Circo(Frame):
         # instead, call `winfo_toplevel to get the root window
         self.winfo_toplevel().title("Circo de drones")
 '''
+class SelectSourceDialog(tk.simpledialog.Dialog):
+    def __init__(self, parent, title):
+        self.selection = None
+        self.opcion = tk.StringVar()
+        self.opcion.set ("laptopCamera")
+        super().__init__(parent, title)
+
+
+
+    def body(self, frame):
+
+        tk.Radiobutton(frame, text="Laptop camera", variable=self.opcion,
+                    value="laptopCamera").pack()
+        tk.Radiobutton(frame, text="Mobile phone camera", variable=self.opcion,
+                    value= "mobileCamera").pack()
+
+
+        return frame
+
+    def ok_pressed(self):
+        self.selection = self.opcion.get()
+        self.destroy()
+
+    def cancel_pressed(self):
+        self.destroy()
+
+    def buttonbox(self):
+        self.ok_button = tk.Button(self, text="OK", width=5, command=self.ok_pressed)
+        self.ok_button.pack(side="left")
+        cancel_button = tk.Button(
+            self, text="Cancel", width=5, command=self.cancel_pressed
+        )
+        cancel_button.pack(side="right")
+        self.bind("<Return>", lambda event: self.ok_pressed())
+        self.bind("<Escape>", lambda event: self.cancel_pressed())
+
 class CircoPoses:
 
     def Open (self, master):
@@ -146,8 +182,8 @@ class CircoPoses:
 
         fingerWindow = Toplevel(self.circusWindow)
         fingerWindow.title("Dedos")
-        fingerWindow.geometry("200x700")
-        detector = DetectorClass(self.drone, self.configuracion_escenario, self.poseList, self.photos)
+        fingerWindow.geometry("200x650")
+        detector = DetectorClass(self.drone, self.configuracion_escenario, self.imageSource,self.poseList, self.photos)
         frame = detector.buildFrame(fingerWindow, 'fingers')
         frame.pack(fill="both", expand="yes")
         fingerWindow.mainloop()
@@ -157,7 +193,7 @@ class CircoPoses:
         poseWindow = Toplevel(self.circusWindow)
         poseWindow.title("Pose")
         poseWindow.geometry("200x700")
-        detector = DetectorClass(self.drone, self.configuracion_escenario,self.poseList, self.photos)
+        detector = DetectorClass(self.drone, self.configuracion_escenario,self.imageSource,self.poseList, self.photos)
         frame = detector.buildFrame(poseWindow, 'pose')
         frame.pack(fill="both", expand="yes")
         poseWindow.mainloop()
@@ -169,7 +205,7 @@ class CircoPoses:
         newWindow = Toplevel(self.circusWindow)
         newWindow.title("Pose")
         newWindow.geometry("450x650")
-        detector = DetectorClass(self.drone, self.configuracion_escenario, None, None)
+        detector = DetectorClass(self.drone, self.configuracion_escenario,self.imageSource, None, None)
         frame = detector.buildFrame(newWindow, 'face')
         frame.pack(fill="both", expand="yes", padx=10, pady=10)
         newWindow.mainloop()
@@ -234,17 +270,23 @@ class CircoPoses:
         scenario = Scene()
         scenario.Open (self.configurationWindow, self.guardar)
 
+
+    def selectImageSource (self):
+        dialog = SelectSourceDialog(title="Select Image Source", parent=self.configurationWindow)
+        self.imageSource = dialog.selection
+
     def storePoses (self, poseList, photos):
-        print ('ya tengo las poses ', poseList)
-        self.poseList = poseList
+        print ('ya tengo las poses ')
         self.photos = photos
+        self.poseList = poseList
         self.createWindow.destroy()
 
     def createPoses (self):
         poseGeneratorDetector = PoseGenerarorDetector()
         self.createWindow = Toplevel(self.configurationWindow)
-        self.createWindow.geometry('480x480')
-        frame = poseGeneratorDetector.BuildFrame(self.createWindow, self.storePoses)
+        #self.createWindow.geometry('480x480')
+        self.createWindow.geometry('480x600')
+        frame = poseGeneratorDetector.BuildFrame(self.createWindow, self.imageSource, self.storePoses)
         frame.pack(fill=BOTH, expand=True)
         self.createWindow.mainloop()
 
@@ -276,25 +318,30 @@ class CircoPoses:
         canvas2.create_image(0, 0, image=self.bg2, anchor="nw")
 
         escenarioButton = Button(self.configurationWindow, text="Configura escenario", height=1, bg='#367E18', fg='#FFE9A0', command=self.configureScenario)
-        escenarioButton.place( x=30, y=480, anchor="nw")
+        escenarioButton.place( x=30, y=450, anchor="nw")
         escenarioButton['font'] = myFont2
+
+        fuenteButton = Button(self.configurationWindow, text="Elige fuente de la imagen", height=1, bg='#367E18',
+                                 fg='#FFE9A0', command=self.selectImageSource)
+        fuenteButton.place(x=180, y=450, anchor="nw")
+        fuenteButton['font'] = myFont2
 
         definePosesButton = Button(self.configurationWindow, text="Crea tus poses", height=1, bg='#367E18',
                                  fg='#FFE9A0', command=self.createPoses)
-        definePosesButton.place(x=200, y=480, anchor="nw")
+        definePosesButton.place(x=360, y=450, anchor="nw")
         definePosesButton['font'] = myFont2
 
         connectButton = Button(self.configurationWindow, text="Conecta con el dron", height=1, bg='#367E18', fg='#FFE9A0', command=self.connect)
-        connectButton.place( x=330, y=480, anchor="nw")
+        connectButton.place( x=480, y=450, anchor="nw")
         connectButton['font'] = myFont2
 
         self.batteryLbl = Label (self.configurationWindow, text= "Nivel de bateria: ????")
-        self.batteryLbl.place( x=480, y=480, anchor="nw")
+        self.batteryLbl.place( x=640, y=450, anchor="nw")
         self.batteryLbl['font'] = myFont2
 
 
-        empezarButton = Button(self.configurationWindow, text="Empezar expectáculo", height=1, bg='#367E18', fg='#FFE9A0', command=self.empezar)
-        empezarButton.place( x=640, y=480, anchor="nw")
+        empezarButton = Button(self.configurationWindow, text="Empezar expectáculo", height=1, width = 75, bg='#367E18', fg='#FFE9A0', command=self.empezar)
+        empezarButton.place( x=100, y=490, anchor="nw")
         empezarButton['font'] = myFont2
 
         self.configurationWindow.mainloop()

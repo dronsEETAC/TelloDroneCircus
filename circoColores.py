@@ -11,6 +11,7 @@ from followColor import FollowColor
 from djitellopy import Tello
 from ColorDetector import ColorDetector
 from Calibrador import Calibrador
+from ColorPlan import ColorPlan
 
 class Scene:
     def Open(self, master, callback):
@@ -102,6 +103,16 @@ class CircoColores:
         frame.pack()
         followCarWindow.mainloop()
 
+    def empezarColorPlan (self):
+        colorPlanWindow = Toplevel(self.circusWindow)
+        colorPlanWindow.title("Color plan")
+        colorPlanWindow.geometry("1000x550")
+        colorPlan = ColorPlan()
+        frame = colorPlan.buildFrame(colorPlanWindow, self.drone, self.colorDetector)
+        frame.pack()
+        colorPlanWindow.mainloop()
+
+        pass
     def fingers(self):
 
         pass
@@ -140,7 +151,7 @@ class CircoColores:
         self.circusWindow.rowconfigure(0, weight=1)
         self.circusWindow.rowconfigure(1, weight=1)
 
-        self.image2 = Image.open("assets/circoColores.png")
+        self.image2 = Image.open("assets/circoColores2.png")
         self.image2 = self.image2.resize((800, 520), Image.ANTIALIAS)
         self.bg2 = ImageTk.PhotoImage(self.image2)
         canvas2 = Canvas(self.circusWindow, width=800, height=520)
@@ -151,10 +162,15 @@ class CircoColores:
         matchBallButton.place( x=50, y=480, anchor="nw")
         matchBallButton['font'] = myFont4
 
-        followCarButton = Button(self.circusWindow, text="Atrapa al ladrón", height=1, bg='#367E18', fg='#FFE9A0', width=18,
+        followCarButton = Button(self.circusWindow, text="Atrapa \nal ladrón", height=2, bg='#367E18', fg='#FFE9A0', width=10,
                                command=self.empezarFollowCar)
-        followCarButton.place( x=350, y=480, anchor="nw")
+        followCarButton.place( x=300, y=480, anchor="nw")
         followCarButton['font'] = myFont4
+
+        colorPlanButton = Button(self.circusWindow, text="Plan \nde colores", height=2, bg='#367E18', fg='#FFE9A0', width=10,
+                               command=self.empezarColorPlan)
+        colorPlanButton.place( x=450, y=480, anchor="nw")
+        colorPlanButton['font'] = myFont4
 
         facesButton = Button(self.circusWindow, text="Sígueme", height=1, bg='#367E18', fg='#FFE9A0', width=8, command=self.faces)
         facesButton.place( x=650, y=480, anchor="nw")

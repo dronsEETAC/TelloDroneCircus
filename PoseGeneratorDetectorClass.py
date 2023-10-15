@@ -9,11 +9,12 @@ import threading
 import time
 import tkinter as tk
 from tkinter import *
+from VideoStreamer import VideoStreamer
 
 
 
 class PoseGenerarorDetector:
-    def BuildFrame (self, master ,callBack):
+    def BuildFrame (self, master ,imageSource, callBack):
         self.callBack = callBack
 
         self.red = '#D61355'
@@ -49,7 +50,7 @@ class PoseGenerarorDetector:
         self.frame.rowconfigure(3, weight=1)
         self.frame.rowconfigure(4, weight=1)
         self.frame.rowconfigure(5, weight=1)
-
+        self.frame.rowconfigure(6, weight=1)
 
         self.startButton = tk.Button(self.frame, text="Start catching", bg=self.gray, command=self.start)
         self.startButton.grid(row=0, column=0, padx=5, pady=5, sticky=N + S + E + W)
@@ -78,7 +79,7 @@ class PoseGenerarorDetector:
 
         self.closeButton = tk.Button(self.frame, text="Close", bg=self.gray, command=self.close)
         self.closeButton.grid(row=6, column=0, columnspan= 3, padx=5, pady=5, sticky=N + S + E + W)
-        size = 10
+        size =10
         self.canvas1 = Canvas(self.frame, width=size, height=size, bg='white')
         self.canvas1.grid(row=0, column=1, rowspan=2, padx=5, pady=5, sticky=N + S + E + W)
 
@@ -103,6 +104,9 @@ class PoseGenerarorDetector:
         self.poseList = []
         self.takeImage = False
         self.state = 'waiting selection'
+        #self.videoStreamer = VideoStreamer('laptopCamera')
+        self.videoStreamer = VideoStreamer(imageSource)
+        self.imageSource = imageSource
 
         return self.masterFrame
 
@@ -258,7 +262,7 @@ class PoseGenerarorDetector:
 
     def startVideoStream(self):
         self.running = True
-        cap = cv2.VideoCapture(0)
+        #cap = cv2.VideoCapture(0)
         self.startButton['bg'] = self.gray
         self.startButton['text'] = 'catching ...'
         self.catchButton['bg'] = self.orange
@@ -267,59 +271,64 @@ class PoseGenerarorDetector:
         self.pose = 0
 
         while self.running:
-            success, image = cap.read()
+            '''success, image = cap.read()
             if not success:
                 print("Ignoring empty camera frame.")
                 # If loading a video, use 'break' instead of 'continue'.
-                continue
+                continue'''
 
-            img = cv2.resize(image, (800, 600))
-            img = cv2.flip(img, 1)
-            landmarks, img = self.detector.markImage(img)
-            if self.takeImage:
-                self.takeImage = False
-                if self.pose < 6:
-                    if not any (point [0] < 0 or point [1] < 0 or point [0] > 1 or point [1] > 1 for point in landmarks):
-                        self.putPicture (self.pose, img)
-                        self.pose = self.pose +1
-                        self.poseList.append(self.detector.normalize(landmarks))
-            cv2.imshow('video', img)
-            cv2.waitKey(1)
+            success, img = self.videoStreamer.getFrame()
+            #img = cv2.flip(img, 1)
+            if success:
+
+                landmarks, img = self.detector.markImage(img)
+                if self.takeImage:
+                    self.takeImage = False
+                    if self.pose < 6:
+                        if not any (point [0] < 0 or point [1] < 0 or point [0] > 1 or point [1] > 1 for point in landmarks):
+                            self.putPicture (self.pose, img)
+                            self.pose = self.pose +1
+                            self.poseList.append(self.detector.normalize(landmarks))
+                cv2.imshow('video', img)
+                cv2.waitKey(1)
         cv2.destroyWindow('video')
         cv2.waitKey(1)
 
 
     def detecting(self):
         self.running = True
-        cap = cv2.VideoCapture(0)
+        #cap = cv2.VideoCapture(0)
 
         self.detectButton['bg'] = self.red
         self.detectButton['text'] = 'Stop detecting'
 
+
         while self.running:
-            success, image = cap.read()
+            '''  success, image = cap.read()
             if not success:
                 print("Ignoring empty camera frame.")
                 # If loading a video, use 'break' instead of 'continue'.
-                continue
-            image = cv2.flip(image, 1)
-            '''    markedImage = image
-            markedImage = cv2.resize(markedImage, (800, 600))
-            markedImage = self.markImage (markedImage, 0, int (self.accuracy.get()))
-            #markedImage = cv2.circle(markedImage, (int(self.poseList[0][0][0])*20, int(self.poseList[0][0][1])*20), int (self.accuracy.get()), (255,0,0), 2)
-            #markedImage = cv2.circle(markedImage, (int(self.poseList[0][1][0])*20, int(self.poseList[0][1][1])*20), int (self.accuracy.get()), (255,0,0), 2)
-            #markedImage = cv2.circle(markedImage, (int(self.poseList[0][2][0])*20, int(self.poseList[0][2][1])*20), int (self.accuracy.get()), (255,0,0), 2)
+                continue'''
+            success, image = self.videoStreamer.getFrame()
+            if success:
+                #image = cv2.flip(image, 1)
+                '''    markedImage = image
+                markedImage = cv2.resize(markedImage, (800, 600))
+                markedImage = self.markImage (markedImage, 0, int (self.accuracy.get()))
+                #markedImage = cv2.circle(markedImage, (int(self.poseList[0][0][0])*20, int(self.poseList[0][0][1])*20), int (self.accuracy.get()), (255,0,0), 2)
+                #markedImage = cv2.circle(markedImage, (int(self.poseList[0][1][0])*20, int(self.poseList[0][1][1])*20), int (self.accuracy.get()), (255,0,0), 2)
+                #markedImage = cv2.circle(markedImage, (int(self.poseList[0][2][0])*20, int(self.poseList[0][2][1])*20), int (self.accuracy.get()), (255,0,0), 2)
+    
+    
+                cv2.imshow('marked', markedImage)'''
+                cv2.waitKey(1)
+                res, img = self.detector.detect(image, int (self.accuracy.get()))
+                cv2.putText(img, "pose "+str(res), (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
 
+                img = cv2.resize(img, (800, 600))
 
-            cv2.imshow('marked', markedImage)'''
-            cv2.waitKey(1)
-            res, img = self.detector.detect(image, int (self.accuracy.get()))
-            cv2.putText(img, "pose "+str(res), (50, 450), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 10)
-
-            img = cv2.resize(img, (800, 600))
-
-            cv2.imshow('video', img)
-            cv2.waitKey(1)
+                cv2.imshow('video', img)
+                cv2.waitKey(1)
         cv2.destroyWindow('video')
         cv2.waitKey(1)
 
@@ -327,8 +336,11 @@ class PoseGenerarorDetector:
         canvas = self.canvasList[pose]
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        cv2.putText(img, 'pose ' + str(pose + 1), (50, 70), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 5)
-        img = cv2.resize(img, (160, 120))
+        cv2.putText(img, 'pose ' + str(pose + 1), (30, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
+        if self.imageSource == 'laptopCamera':
+            img = cv2.resize(img, (200, 150))
+        else:
+            img = cv2.resize(img, (120, 150))
 
 
 
@@ -337,6 +349,7 @@ class PoseGenerarorDetector:
     def close (self):
         if self.state == 'ready to detect':
             self.callBack (self.poseList, self.photos)
+            self.videoStreamer.disconnect()
 
 if __name__ == '__main__':
     poseGeneratorDetector = PoseGenerarorDetector()

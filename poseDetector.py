@@ -9,8 +9,7 @@ class PoseDetector:
     def __init__(self, poseList):
         self.poseList = poseList
         if self.poseList != None:
-
-            if len(self.poseList[0]) == 13:
+            if len(self.poseList[0]) == 14:
                 self.detector = Detector('half body')
             else:
                 self.detector = Detector('full body')
@@ -247,11 +246,11 @@ class PoseDetector:
                 elif self.__p6(poseLandmarks):
                     res = 5
                 '''
-                image = cv2.flip(image, 1)
+                #image = cv2.flip(image, 1)
                 res, img = self.detector.detect(image, 50)
-                print ('detecto ', res)
-                img = cv2.flip(img, 1)
-                img = cv2.resize(img, (800, 600))
+                #print ('detecto ', res)
+                #img = cv2.flip(img, 1)
+                #img = cv2.resize(img, (800, 600))
 
             else:
                 # to see what are the easy patterns see picture assets/poses_faciles.png
@@ -277,9 +276,9 @@ class PoseDetector:
                     res = 7
 
                 elif (poseLandmarks[12][1] < poseLandmarks[14][1]) and (poseLandmarks[11][1] > poseLandmarks[13][1]):
-                    res = 3
-                elif (poseLandmarks[12][1] > poseLandmarks[14][1]) and (poseLandmarks[11][1] < poseLandmarks[13][1]):
                     res = 4
+                elif (poseLandmarks[12][1] > poseLandmarks[14][1]) and (poseLandmarks[11][1] < poseLandmarks[13][1]):
+                    res = 3
                 elif (poseLandmarks[12][1] > poseLandmarks[14][1]) and (poseLandmarks[11][1] > poseLandmarks[13][1]):
                     if (poseLandmarks[18][0] > poseLandmarks[17][0]):
                         res = 1

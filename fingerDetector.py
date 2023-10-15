@@ -94,10 +94,10 @@ class FingerDetector:
         if level == 'difficult':
             res = ''
             #res, img = self.detect(image, 50)
-            image = cv2.flip(image, 1)
+            #image = cv2.flip(image, 1)
             res, img = self.detector.detect(image, 50)
-            img = cv2.flip(img, 1)
-            img = cv2.resize(img, (800, 600))
+            #img = cv2.flip(img, 1)
+            #img = cv2.resize(img, (800, 600))
 
             #res, img = self.detector.detect(image, 50)
             '''

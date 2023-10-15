@@ -12,6 +12,7 @@ from poseDetector import PoseDetector
 from faceDetector import FaceDetector
 from PIL import ImageTk
 from tkinter import messagebox
+from VideoStreamer import VideoStreamer
 
 class MovementGenerator:
     '''Esta clase es para controlar que el dron no se salga de los límites establecidos.
@@ -164,7 +165,8 @@ class Scene:
         self.newWindow.destroy()
 '''
 class DetectorClass:
-    def __init__(self, drone, escenario, poseList, photos):
+    def __init__(self, drone, escenario, imageSource, poseList, photos):
+        self.imageSource = imageSource
         self.poseList = poseList
         self.photos = photos
         self.direction = None
@@ -200,10 +202,11 @@ class DetectorClass:
         self.preparado = "EXT mled g 00rrr0000r000r000r0000r000000r000000r0000000r000000000000000r000"
 
         self.level = 'easy'
+        self.videoStreamer = VideoStreamer(imageSource)
 
     def easy (self):
 
-        self.fatherFrame.geometry("200x700")
+        self.fatherFrame.geometry("200x650")
 
         self.level = 'easy'
         self.bottomFrame['text'] = 'Fácil'
@@ -225,6 +228,7 @@ class DetectorClass:
 
         self.canvas.create_image(0, 0, image=self.bg, anchor="nw")
         self.canvas.pack(fill="both", expand=True)
+
 
     def difficult(self):
         if self.poseList == None:
@@ -254,7 +258,7 @@ class DetectorClass:
 
             self.canvas.pack_forget()
             #self.fatherFrame.geometry("150x650")
-            self.fatherFrame.geometry("360x700")
+            self.fatherFrame.geometry("360x650")
 
 
             self.canvasFrame = Frame (self.bottomFrame)
@@ -281,6 +285,7 @@ class DetectorClass:
             self.canvas1 = Canvas(self.canvasFrame, width=sizeW, height=sizeH, bg='white')
             self.canvas1.grid(row=1, column=0, padx=5, pady=5, sticky=N + S + E + W)
             self.canvas1.create_image(0, 0, image=self.photos[0], anchor=tk.NW)
+
 
             self.imageAtras = Image.open("assets/atras.png")
             self.imageAtras = self.imageAtras.resize((100, 40), Image.ANTIALIAS)
@@ -349,7 +354,7 @@ class DetectorClass:
         self.fatherFrame = fatherFrame
         self.mode = mode
 
-        self.cap = cv2.VideoCapture(0)
+        #self.cap = cv2.VideoCapture(0)
 
         if self.mode == 'fingers':
             self.detector = FingerDetector(self.poseList)
@@ -374,17 +379,17 @@ class DetectorClass:
         self.state = 'initial'
         self.easyBtn = tk.Button(self.topFrame, text="Fácil", bg='#367E18', fg="white",
                                   command=self.easy)
-        self.easyBtn.grid(row=0, column=0, padx=5, pady=5, sticky=N + S + E + W)
+        self.easyBtn.grid(row=0, column=0, padx=5, pady=2, sticky=N + S + E + W)
         self.difficultBtn = tk.Button(self.topFrame, text="Tus poses", bg='#FFE9A0', fg="black",
                                      command=self.difficult)
-        self.difficultBtn.grid(row=0, column=1, padx=5, pady=5, sticky=N + S + E + W)
+        self.difficultBtn.grid(row=0, column=1, padx=5, pady=2, sticky=N + S + E + W)
 
         self.practice = tk.Button(self.topFrame, text="Practica", bg='#F57328', fg="white",
                                   command=self.practice)
-        self.practice.grid(row=1, column=0, padx=5, pady=5, sticky=N + S + E + W)
+        self.practice.grid(row=1, column=0, padx=5, pady=2, sticky=N + S + E + W)
         self.closeButton = tk.Button(self.topFrame, text="Salir", bg='#FFE9A0', fg="black",
                                      command=self.close)
-        self.closeButton.grid(row=1, column=1, padx=5, pady=5, sticky=N + S + E + W)
+        self.closeButton.grid(row=1, column=1, padx=5, pady=2, sticky=N + S + E + W)
 
 
         # frame to be shown when practise is finish and user wants to fly
@@ -476,7 +481,8 @@ class DetectorClass:
     def close(self):
         # this will stop the video stream thread
         self.state = 'closed'
-        self.cap.release()
+        self.videoStreamer.disconnect()
+        #self.cap.release()
         self.fatherFrame.destroy()
         cv2.destroyAllWindows()
         cv2.waitKey(1)
@@ -528,31 +534,43 @@ class DetectorClass:
         cont = 0
 
         while self.state == 'practising':
-            success, image = self.cap.read()
+            '''success, image = self.cap.read()
             if not success:
                 print("Ignoring empty camera frame.")
                 # If loading a video, use 'break' instead of 'continue'.
-                continue
+                continue'''
+            success,image = self.videoStreamer.getFrame()
+            if success:
 
-            code, img = self.detector.detect(image, self.level)
-            print ('detecto ', code)
-            img = cv2.resize(img, (800, 600))
-            img = cv2.flip(img, 1)
+                code, img = self.detector.detect(image, self.level)
+                print ('tengo')
+                if (code != ''):
+                    print ('estoy detectando ', code)
+                #img = cv2.resize(img, (800, 600))
+                #img = cv2.flip(img, 1)
 
-            # if user changed the pattern we will ignore the next 8 video frames
-            if (code != prevCode):
-                cont = 4
-                prevCode = code
-            else:
-                cont = cont - 1
-                if cont < 0:
-                    # the first 8 video frames of the new pattern (to be ignored) are done
-                    # we can start showing new results
-                    direction = self.__setDirection(code)
-                    cv2.putText(img, direction, (50, 450), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 10)
+                # if user changed the pattern we will ignore the next 8 video frames
+                if (code != prevCode):
+                    cont = 1
+                    prevCode = code
+                else:
+                    cont = cont - 1
+                    if cont < 0:
+                        # the first 8 video frames of the new pattern (to be ignored) are done
+                        # we can start showing new results
+                        direction = self.__setDirection(code)
+                        cv2.putText(
+                            img,
+                            direction,
+                            (30, 50),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            2,
+                            (0, 0, 255),
+                            4,
+                        )
 
-            cv2.imshow('video', img)
-            cv2.waitKey(1)
+                cv2.imshow('video', img)
+                cv2.waitKey(1)
         cv2.destroyWindow('video')
         cv2.waitKey(1)
 
@@ -587,6 +605,8 @@ class DetectorClass:
                 #genero la siguiente orden
                 n = self.movementGenerator.NewMovement(self.drone.get_battery())
                 self.comando = comandos[n]
+                time.sleep(3)
+                print ('comando ', self.comando)
                 self.drone.send_control_command(self.comando)
                 cont = 0
                 detected = False
@@ -596,26 +616,37 @@ class DetectorClass:
                 start_time.start()
                 # tomo imágenes mientras no se acierte y no se acabe el tiempo de alarma
                 while not detected and self.aviso != 2:
-                    success, image = self.cap.read()
+                    ''' success, image = self.cap.read()
                     if not success:
                         print("Ignoring empty camera frame.")
                         # If loading a video, use 'break' instead of 'continue'.
-                        continue
-                    code, img = self.detector.detect(image, self.level)
-                    img = cv2.resize(img, (800, 600))
-                    img = cv2.flip(img, 1)
-                    self.direction = self.__setDirection(code)
-                    cv2.putText(img, self.direction, (50, 450), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 10)
-                    cv2.imshow('video', img)
-                    cv2.waitKey(1)
-                    if code == n+1 or code == 6:
-                        cont = cont +1
-                        if cont == 8:
-                            # tenemos 8 frames con la pose correcta. El jugador ha acertado
-                            detected = True
-                    else:
-                        #ha cambiado de pose
-                        cont = 0
+                        continue'''
+                    success, image = self.videoStreamer.getFrame()
+                    if success:
+                        code, img = self.detector.detect(image, self.level)
+                        #img = cv2.resize(img, (800, 600))
+                        #img = cv2.flip(img, 1)
+                        self.direction = self.__setDirection(code)
+                        cv2.putText(
+                            img,
+                            self.direction,
+                            (30, 50),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            2,
+                            (0, 0, 255),
+                            4,
+                        )
+                        cv2.imshow('video', img)
+                        cv2.waitKey(1)
+                        if code == n+1:
+                            cont = cont +1
+                            if cont == 4:
+                                # tenemos 8 frames con la pose correcta. El jugador ha acertado
+                                detected = True
+                                print ('detectado ', code)
+                        else:
+                            #ha cambiado de pose
+                            cont = 0
 
 
                 if self.aviso == 2:
@@ -656,18 +687,23 @@ class DetectorClass:
             self.drone.send_control_command(self.ole)
         # miro el desplazamiento que ha tenido en el plano para hacerle volver al punto inicial y aterrizar
         left_right,forward_back = self.movementGenerator.GetPosition()
+        print ('fin ', left_right,forward_back)
         if (left_right < 0):
             for n in range (abs(left_right)):
                 self.drone.go_xyz_speed(0, 50, 0, 100)
+                time.sleep(2)
         else:
             for n in range(abs(left_right)):
                 self.drone.go_xyz_speed(0, -50, 0, 100)
+                time.sleep(2)
         if (forward_back < 0):
             for n in range(abs(forward_back)):
                 self.drone.go_xyz_speed(50, 0, 0, 100)
+                time.sleep(2)
         else:
             for n in range(abs(forward_back)):
                 self.drone.go_xyz_speed(-50, 0, 0, 100)
+                time.sleep(2)
 
         self.drone.land()
         messagebox.showwarning("Success", "Ya estamos en casa", parent=self.master)

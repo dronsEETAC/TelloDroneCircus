@@ -139,11 +139,22 @@ class Detector:
             return False
 
     def detectPose(self, norm, p, accuracy):
+        if self.mode == 'hand':
+            points = [0,4,8,12,16,20]
 
-        for i in range(0, len(norm)):
-            if not self.pointInCicle(norm[i], self.poseList[p][i], accuracy):
-                return False
-        return True
+            #for i in range(0, len(norm)):
+            for i in points:
+                if not self.pointInCicle(norm[i], self.poseList[p][i], accuracy):
+                    return False
+            return True
+        else:
+            points = [0,1,2,3,4,5,12,13]
+            #for i in range(0, len(norm)):
+            for i in points:
+                if not self.pointInCicle(norm[i], self.poseList[p][i], accuracy):
+                    return False
+            return True
+
 
     def markImage(self, image):
         if self.mode == 'hand':
