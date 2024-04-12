@@ -90,7 +90,118 @@ class Circo(Frame):
         # instead, call `winfo_toplevel to get the root window
         self.winfo_toplevel().title("Circo de drones")
 '''
-class SelectSourceDialog(tk.simpledialog.Dialog):
+
+
+class Camera(Frame):
+
+    selectionCamera = False
+    int_camera = 0
+
+    def Open(self, master):
+        self.newWindow = Toplevel(master)
+        self.selectionCamera = False
+        self.selectedCamera = 0
+        self.selectedBroker = 0
+        self.newWindow.title("Camera")
+        self.newWindow.geometry("300x300")
+        self.mainFrame = tk.Frame(self.newWindow)
+        self.mainFrame.pack()
+        self.mainFrame.rowconfigure(0, weight=1)
+        self.mainFrame.rowconfigure(1, weight=1)
+        self.mainFrame.rowconfigure(2, weight=1)
+        self.mainFrame.rowconfigure(3, weight=1)
+        self.mainFrame.rowconfigure(4, weight=1)
+        self.mainFrame.rowconfigure(5, weight=1)
+        '''self.mainFrame.rowconfigure(6, weight=1)
+        self.mainFrame.rowconfigure(7, weight=1)
+        self.mainFrame.columnconfigure(1, weight=1)
+        self.mainFrame.columnconfigure(2, weight=1)
+        self.mainFrame.columnconfigure(3, weight=1)'''
+
+        self.cameraSelection = tk.IntVar()  # Variable de control para la seleccion de la cámara
+        self.cameraSelection.set(0)  # Por defecto va estar puesto el ordendador
+
+        self.brokerSelection = tk.IntVar()  # Variable de control para la selección del broker
+        self.brokerSelection.set(0)  # Por defecto va estar puesto dronseetac
+
+        self.phoneBtn = tk.Radiobutton(
+            self.mainFrame,
+            text="Cámara del Móvil",
+            variable=self.cameraSelection,
+            value=1,
+            command=self.updateCameraSelection)
+
+        self.computerBtn = tk.Radiobutton(
+            self.mainFrame,
+            text="Cámara del Ordenador",
+            variable=self.cameraSelection,
+            value=0,
+            command=self.updateCameraSelection)
+
+        self.dronseetacBtn = tk.Radiobutton(
+            self.mainFrame,
+            text="Broker en dronseetac",
+            variable=self.brokerSelection,
+            value=0,
+            command=self.updateBrokerSelection)
+
+        self.hivemqBtn = tk.Radiobutton(
+            self.mainFrame,
+            text="Broker en hivemq",
+            variable=self.brokerSelection,
+            value=1,
+            command=self.updateBrokerSelection)
+
+        self.closeSelectBtn = tk.Button(
+            self.mainFrame,
+            text="Cerrar y guardar selección",
+            bg='#F57328', fg="white",
+            command=self.closeSelection)
+
+        self.phoneBtn.grid(row=0, column=0, padx=5, pady=5, sticky=N + S  + W )
+        self.computerBtn.grid(row=1, column=0, padx=5, pady=5, sticky=N + S + W )
+        self.closeSelectBtn.grid(row=4, column=0, padx=5, pady=5, sticky=N + S + W )
+
+    def updateCameraSelection(self):
+        # Si seleccionas el radiobutton del móvil, deselecciona el radiobutton del ordenador
+        # y muestra las opciones para el broker
+        if self.cameraSelection.get() == 1:
+            self.cameraSelection.set(1)
+            self.dronseetacBtn.grid(row=2, column=0,  padx=5, pady=5, sticky=N + S + W )
+            self.hivemqBtn.grid(row=3, column=0,  padx=5, pady=5, sticky=N + S + W )
+
+
+        # Si seleccionas el radiobutton del ordenador, deselecciona el radiobutton del móvil
+        if self.cameraSelection.get() == 0:
+            self.cameraSelection.set(0)
+            self.dronseetacBtn.grid_forget()
+            self.hivemqBtn.grid_forget()
+
+    def updateBrokerSelection(self):
+        if self.brokerSelection.get() == 1:
+            self.brokerSelection.set(1)
+
+            # Si seleccionas el radiobutton del ordenador, deselecciona el radiobutton del móvil
+        if self.brokerSelection.get() == 0:
+            self.brokerSelection.set(0)
+
+
+    def closeSelection(self):
+        self.selectedCamera = 0
+        self.selectedBroker = 0
+        if self.cameraSelection.get() == 1:
+            self.selectedCamera = 1
+            print('Has seleccionado usar la cámara del móvil!')
+            if self.brokerSelection.get() == 1:
+                self.selectedBroker= 1
+
+        self.newWindow.destroy()
+        self.selectionCamera = True
+        print ('camara seleccionada: ', self.selectedCamera)
+        print('broker seleccionado: ', self.selectedBroker)
+
+
+'''class SelectSourceDialog(tk.simpledialog.Dialog):
     def __init__(self, parent, title):
         self.selection = None
         self.opcion = tk.StringVar()
@@ -125,7 +236,7 @@ class SelectSourceDialog(tk.simpledialog.Dialog):
         cancel_button.pack(side="right")
         self.bind("<Return>", lambda event: self.ok_pressed())
         self.bind("<Escape>", lambda event: self.cancel_pressed())
-
+'''
 class CircoPoses:
 
     def Open (self, master):
@@ -183,7 +294,9 @@ class CircoPoses:
         fingerWindow = Toplevel(self.circusWindow)
         fingerWindow.title("Dedos")
         fingerWindow.geometry("200x650")
-        detector = DetectorClass(self.drone, self.configuracion_escenario, self.imageSource,self.poseList, self.photos)
+        self.imageSource = self.camera.selectedCamera
+        self.broker = self.camera.selectedBroker
+        detector = DetectorClass(self.drone, self.configuracion_escenario, self.imageSource, self.broker,self.poseList, self.photos)
         frame = detector.buildFrame(fingerWindow, 'fingers')
         frame.pack(fill="both", expand="yes")
         fingerWindow.mainloop()
@@ -193,7 +306,9 @@ class CircoPoses:
         poseWindow = Toplevel(self.circusWindow)
         poseWindow.title("Pose")
         poseWindow.geometry("200x700")
-        detector = DetectorClass(self.drone, self.configuracion_escenario,self.imageSource,self.poseList, self.photos)
+        self.imageSource = self.camera.selectedCamera
+        self.broker = self.camera.selectedBroker
+        detector = DetectorClass(self.drone, self.configuracion_escenario,self.imageSource,self.broker,self.poseList, self.photos)
         frame = detector.buildFrame(poseWindow, 'pose')
         frame.pack(fill="both", expand="yes")
         poseWindow.mainloop()
@@ -205,7 +320,9 @@ class CircoPoses:
         newWindow = Toplevel(self.circusWindow)
         newWindow.title("Pose")
         newWindow.geometry("450x650")
-        detector = DetectorClass(self.drone, self.configuracion_escenario,self.imageSource, None, None)
+        self.imageSource = self.camera.selectedCamera
+        self.broker = self.camera.selectedBroker
+        detector = DetectorClass(self.drone, self.configuracion_escenario,self.imageSource,self.broker, None, None)
         frame = detector.buildFrame(newWindow, 'face')
         frame.pack(fill="both", expand="yes", padx=10, pady=10)
         newWindow.mainloop()
@@ -272,8 +389,11 @@ class CircoPoses:
 
 
     def selectImageSource (self):
-        dialog = SelectSourceDialog(title="Select Image Source", parent=self.configurationWindow)
-        self.imageSource = dialog.selection
+        #dialog = SelectSourceDialog(title="Select Image Source", parent=self.configurationWindow)
+        self.camera = Camera()
+        self.camera.Open(self.configurationWindow)
+
+
 
     def storePoses (self, poseList, photos):
         print ('ya tengo las poses ')
@@ -286,7 +406,10 @@ class CircoPoses:
         self.createWindow = Toplevel(self.configurationWindow)
         #self.createWindow.geometry('480x480')
         self.createWindow.geometry('480x600')
-        frame = poseGeneratorDetector.BuildFrame(self.createWindow, self.imageSource, self.storePoses)
+        self.imageSource = self.camera.selectedCamera
+        self.broker = self.camera.selectedBroker
+        print ('voy a pasar ', self.imageSource, self.broker)
+        frame = poseGeneratorDetector.BuildFrame(self.createWindow, self.imageSource, self.broker,self.storePoses)
         frame.pack(fill=BOTH, expand=True)
         self.createWindow.mainloop()
 

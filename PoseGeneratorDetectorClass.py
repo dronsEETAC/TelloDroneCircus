@@ -14,7 +14,8 @@ from VideoStreamer import VideoStreamer
 
 
 class PoseGenerarorDetector:
-    def BuildFrame (self, master ,imageSource, callBack):
+    def BuildFrame (self, master ,imageSource, broker, callBack):
+        print ('recino :', imageSource, broker)
         self.callBack = callBack
 
         self.red = '#D61355'
@@ -100,12 +101,14 @@ class PoseGenerarorDetector:
 
         self.canvasList = [self.canvas1, self.canvas2, self.canvas3, self.canvas4, self.canvas5, self.canvas6]
         self.photos = []
+        self.photos2 = []
+
 
         self.poseList = []
         self.takeImage = False
         self.state = 'waiting selection'
         #self.videoStreamer = VideoStreamer('laptopCamera')
-        self.videoStreamer = VideoStreamer(imageSource)
+        self.videoStreamer = VideoStreamer(imageSource, broker)
         self.imageSource = imageSource
 
         return self.masterFrame
@@ -225,6 +228,7 @@ class PoseGenerarorDetector:
             self.canvasList[self.pose].delete('all')
             self.poseList = self.poseList[0:-1]
             self.photos = self.photos[0:-1]
+            self.photos2 = self.photos2[0:-1]
 
     def maxmin (self,points):
         minx = 2
@@ -337,15 +341,15 @@ class PoseGenerarorDetector:
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         cv2.putText(img, 'pose ' + str(pose + 1), (30, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
-        if self.imageSource == 'laptopCamera':
+        print ('image source :', self.imageSource)
+        if self.imageSource == 0:
             img = cv2.resize(img, (200, 150))
+
         else:
             img = cv2.resize(img, (120, 150))
-
-
-
-        self.photos.append(ImageTk.PhotoImage(image=Img.fromarray(img)))
-        canvas.create_image(0, 0, image=self.photos[-1], anchor=tk.NW)
+        self.photos.append(img.copy())
+        self.photos2.append(ImageTk.PhotoImage(image=Img.fromarray(img)))
+        canvas.create_image(0, 0, image=self.photos2[-1], anchor=tk.NW)
     def close (self):
         if self.state == 'ready to detect':
             self.callBack (self.poseList, self.photos)

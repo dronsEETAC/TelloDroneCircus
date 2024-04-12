@@ -11,6 +11,7 @@ from fingerDetector import FingerDetector
 from poseDetector import PoseDetector
 from faceDetector import FaceDetector
 from PIL import ImageTk
+from PIL import Image as Img
 from tkinter import messagebox
 from VideoStreamer import VideoStreamer
 
@@ -165,8 +166,9 @@ class Scene:
         self.newWindow.destroy()
 '''
 class DetectorClass:
-    def __init__(self, drone, escenario, imageSource, poseList, photos):
+    def __init__(self, drone, escenario, imageSource, broker, poseList, photos):
         self.imageSource = imageSource
+        self.broker = broker
         self.poseList = poseList
         self.photos = photos
         self.direction = None
@@ -202,7 +204,7 @@ class DetectorClass:
         self.preparado = "EXT mled g 00rrr0000r000r000r0000r000000r000000r0000000r000000000000000r000"
 
         self.level = 'easy'
-        self.videoStreamer = VideoStreamer(imageSource)
+        self.videoStreamer = VideoStreamer(self.imageSource, self.broker)
 
     def easy (self):
 
@@ -229,7 +231,17 @@ class DetectorClass:
         self.canvas.create_image(0, 0, image=self.bg, anchor="nw")
         self.canvas.pack(fill="both", expand=True)
 
-
+    def resizeImage(self, img, newWidth, newHeight):
+        oldWidth = img.width()
+        oldHeight = img.height()
+        newPhotoImage = PhotoImage(width=newWidth, height=newHeight)
+        for x in range(newWidth):
+            for y in range(newHeight):
+                xOld = int(x * oldWidth / newWidth)
+                yOld = int(y * oldHeight / newHeight)
+                rgb = '#%02x%02x%02x' % img.get(xOld, yOld)
+                newPhotoImage.put(rgb, (x, y))
+        return newPhotoImage
     def difficult(self):
         if self.poseList == None:
             messagebox.showwarning("Error", "No has definido tus poses", parent=self.master)
@@ -273,8 +285,19 @@ class DetectorClass:
             self.canvasFrame.rowconfigure(4, weight=1)
             self.canvasFrame.rowconfigure(5, weight=1)
 
-            sizeW = 160
-            sizeH = 120
+            if self.imageSource == 0:
+                sizeW = 134
+                sizeH = 100
+            else:
+                sizeW = 80
+                sizeH = 100
+
+
+            self.images = []
+            for image in self.photos:
+                img = cv2.resize(image, (sizeW, sizeH))
+                self.images.append(ImageTk.PhotoImage(image=Img.fromarray(img)))
+
             self.imageAdelante = Image.open("assets/adelante.png")
             self.imageAdelante = self.imageAdelante.resize((100, 40), Image.ANTIALIAS)
             self.bgAdelante = ImageTk.PhotoImage(self.imageAdelante)
@@ -284,7 +307,7 @@ class DetectorClass:
 
             self.canvas1 = Canvas(self.canvasFrame, width=sizeW, height=sizeH, bg='white')
             self.canvas1.grid(row=1, column=0, padx=5, pady=5, sticky=N + S + E + W)
-            self.canvas1.create_image(0, 0, image=self.photos[0], anchor=tk.NW)
+            self.canvas1.create_image(0, 0, image=self.images[0], anchor=tk.NW)
 
 
             self.imageAtras = Image.open("assets/atras.png")
@@ -296,7 +319,7 @@ class DetectorClass:
 
             self.canvas2 = Canvas(self.canvasFrame, width=sizeW, height=sizeH, bg='white')
             self.canvas2.grid(row=1, column=1,  padx=5, pady=5, sticky=N + S + E + W)
-            self.canvas2.create_image(0, 0, image=self.photos[1], anchor=tk.NW)
+            self.canvas2.create_image(0, 0,  image=self.images[1], anchor=tk.NW)
 
             self.imageIzquierda = Image.open("assets/izquierda.png")
             self.imageIzquierda = self.imageIzquierda.resize((100, 40), Image.ANTIALIAS)
@@ -307,7 +330,7 @@ class DetectorClass:
 
             self.canvas3 = Canvas(self.canvasFrame, width=sizeW, height=sizeH, bg='white')
             self.canvas3.grid(row=3, column=0,  padx=5, pady=(0,5), sticky=N + S + E + W)
-            self.canvas3.create_image(0, 0, image=self.photos[2], anchor=tk.NW)
+            self.canvas3.create_image(0, 0,  image=self.images[2], anchor=tk.NW)
 
             self.imageDerecha = Image.open("assets/derecha.png")
             self.imageDerecha = self.imageDerecha.resize((100, 40), Image.ANTIALIAS)
@@ -318,7 +341,7 @@ class DetectorClass:
 
             self.canvas4 = Canvas(self.canvasFrame, width=sizeW, height=sizeH, bg='white')
             self.canvas4.grid(row=3, column=1,  padx=5, pady=(0,5), sticky=N + S + E + W)
-            self.canvas4.create_image(0, 0, image=self.photos[3], anchor=tk.NW)
+            self.canvas4.create_image(0, 0, image=self.images[3], anchor=tk.NW)
 
             self.imageArriba = Image.open("assets/arriba.png")
             self.imageArriba = self.imageArriba.resize((100, 40), Image.ANTIALIAS)
@@ -329,7 +352,7 @@ class DetectorClass:
 
             self.canvas5 = Canvas(self.canvasFrame, width=sizeW, height=sizeH, bg='white')
             self.canvas5.grid(row=5, column=0, padx=5, pady=(0,5), sticky=N + S + E + W)
-            self.canvas5.create_image(0, 0, image=self.photos[4], anchor=tk.NW)
+            self.canvas5.create_image(0, 0,  image=self.images[4], anchor=tk.NW)
 
             self.imageAbajo = Image.open("assets/abajo.png")
             self.imageAbajo = self.imageAbajo.resize((100, 40), Image.ANTIALIAS)
@@ -340,7 +363,7 @@ class DetectorClass:
 
             self.canvas6 = Canvas(self.canvasFrame, width=sizeW, height=sizeH, bg='white')
             self.canvas6.grid(row=5, column=1, padx=5, pady=(0,5), sticky=N + S + E + W)
-            self.canvas6.create_image(0, 0, image=self.photos[5], anchor=tk.NW)
+            self.canvas6.create_image(0, 0,  image=self.images[5], anchor=tk.NW)
 
             self.canvasFrame.pack(fill="both", expand=True)
 

@@ -80,7 +80,7 @@ class ColorPlan:
 
         self.casosFrame.place(x=900, y=90, anchor="nw")
 
-        self.speed = 30
+        self.speed = 20
         self.caso = 'caso1'
         return self.colorPlanFrame
 
@@ -218,7 +218,7 @@ class ColorPlan:
         color = ""
         self.flying = True
         moving = False
-        lastMovement = 'none'
+        lastColor = 'none'
 
         while self.flying:
             telloFrame = self.drone.get_frame_read().frame
@@ -232,17 +232,16 @@ class ColorPlan:
             cv2.waitKey(1)
 
             img, data, color = self.colorDetector.DetectColor(telloFrame)
-            if color != lastMovement:
+            if color != lastColor:
+                    lastColor = color
                     if color == 'yellow':
                         # hacia delante
                         if not moving:
                             moving = True
                             self.forward()
-                            lastMovement = 'yellow'
                         elif self.Cerca(data[0]):
                             self.forward()
-                            lastMovement = 'yellow'
-                            
+
                     elif color == 'blueS':
                         print('detecto blueS')
                         # aterriza
@@ -255,10 +254,8 @@ class ColorPlan:
                         if not moving:
                             moving = True
                             self.left()
-                            lastMovement = 'blueL'
                         elif self.Cerca(data[0]):
                             self.left()
-                            lastMovement = 'blueL'
 
                     elif color == 'green':
                         # hacia la derecha
@@ -266,20 +263,16 @@ class ColorPlan:
                         if not moving:
                             moving = True
                             self.right()
-                            lastMovement = 'green'
 
                         elif self.Cerca(data[0]):
                             self.right()
-                            lastMovement = 'green'
                     elif color == 'pink':
                         # hacia atras
                         if not moving:
                             moving = True
                             self.back()
-                            lastMovement = 'pink'
                         elif self.Cerca(data[0]):
                             self.back()
-                            lastMovement = 'pink'
 
 
 

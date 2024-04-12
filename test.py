@@ -1,14 +1,21 @@
-import cv2 as cv
+# Importing threading and time module.
+import threading,time
 
-from ColorDetector import ColorDetector
+def main():
+    # time.asctime() prints the current date & time in string.
+    print('Program Executed @',time.asctime())
 
-detector = ColorDetector()
-cam = cv.VideoCapture(0)
+def run():
+    # created a global variable.
+    global counter
+    counter += 1
 
-while True:
-    ret, frame = cam.read()
+    # stop after 5 executions
+    if counter < 5:
+        # where 5 is the number of seconds to wait
+        threading.Timer(5, run).start()
+    # running the main function
+    main()
 
-    a,b,c = detector.DetectColor(frame)
-    cv.imshow("test", a)
-
-    k = cv.waitKey(1)
+counter = 0
+run()

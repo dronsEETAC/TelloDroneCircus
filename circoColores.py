@@ -6,6 +6,7 @@ import requests
 from tkinter import font
 from PIL import Image, ImageTk
 from matchBall import MatchBall
+from followCar import FollowCar
 from followColor import FollowColor
 
 from djitellopy import Tello
@@ -98,7 +99,7 @@ class CircoColores:
         followCarWindow = Toplevel(self.circusWindow)
         followCarWindow.title("Follow car")
         followCarWindow.geometry("450x650")
-        followCar = FollowColor()
+        followCar = FollowCar()
         frame = followCar.buildFrame(followCarWindow, self.drone, self.colorDetector, 'down')
         frame.pack()
         followCarWindow.mainloop()
@@ -121,10 +122,14 @@ class CircoColores:
     def pose(self):
         pass
 
-
-    def faces(self):
-        pass
-
+    def empezarFollowColor (self):
+        followColorWindow = Toplevel(self.circusWindow)
+        followColorWindow.title("Follow color")
+        followColorWindow.geometry("800x650")
+        followColor = FollowColor()
+        frame = followColor.buildFrame(followColorWindow, self.drone, self.colorDetector, 'front')
+        frame.pack()
+        followColorWindow.mainloop()
     def bye(self):
         bye = Toplevel(self.circusWindow)
         bye.geometry("770x525")
@@ -172,9 +177,9 @@ class CircoColores:
         colorPlanButton.place( x=450, y=480, anchor="nw")
         colorPlanButton['font'] = myFont4
 
-        facesButton = Button(self.circusWindow, text="Sígueme", height=1, bg='#367E18', fg='#FFE9A0', width=8, command=self.faces)
-        facesButton.place( x=650, y=480, anchor="nw")
-        facesButton['font'] = myFont4
+        followColorButton = Button(self.circusWindow, text="Sígueme", height=1, bg='#367E18', fg='#FFE9A0', width=8, command=self.empezarFollowColor)
+        followColorButton.place( x=650, y=480, anchor="nw")
+        followColorButton['font'] = myFont4
 
         byeButton = Button(self.circusWindow, text="Salir", height=1, bg='#FFE9A0', fg='#367E18', command=self.bye)
         byeButton.grid(row=1, column=0, columnspan=4, padx=5, pady=5, sticky=N + S + E + W)
