@@ -13,7 +13,7 @@ import os
 import base64
 import queue
 from Gallery import GalleryMedia
-
+import pygame
 
 class escenarioVideo:
     def Open(self, master, selectedBroker):
@@ -35,25 +35,33 @@ class escenarioVideo:
         self.take_off = False
         self.sending = False
         self.frame_queue = queue.Queue()
+        self.selectedBroker = selectedBroker
+        self.usingJoystic = False
 
         ############################
-        self.windowVideo.geometry("550x500")
+        self.windowVideo.geometry("650x500")
         self.windowVideo.rowconfigure(0, weight=1)
         self.windowVideo.rowconfigure(1, weight=1)
         self.windowVideo.rowconfigure(2, weight=1)
+        self.windowVideo.rowconfigure(3, weight=1)
 
         self.windowVideo.columnconfigure(0, weight=1)
         self.windowVideo.columnconfigure(1, weight=1)
+        self.windowVideo.columnconfigure(2, weight=1)
 
         self.windowVideo.title("Foto Page")
 
         # Title label
         self.titlelabel = tk.Label(self.windowVideo, text="RECORD YOUR VIDEO", height=3)
-        self.titlelabel.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky=N + S + E + W)
+        self.titlelabel.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky=N + S + E + W)
         self.titlelabel['font'] = myFont3
 
+        self.connectBrokerButton = Button(self.windowVideo, text="Connect broker", bg='#FF6103',
+                                          fg='#F8F8FF', command=self.connectBroker)
+        self.connectBrokerButton.grid(row=1, column=0, columnspan=3, padx=5, pady=5, sticky=N + S + E + W)
+
         self.picturesFrame = tk.LabelFrame(self.windowVideo, text='Video')
-        self.picturesFrame.grid(row=1, column=0, padx=5, pady=5, sticky=N + S + E + W)
+        self.picturesFrame.grid(row=2, column=0, padx=5, pady=5, sticky=N + S + E + W)
 
         self.picturesFrame.rowconfigure(0, weight=1)
         self.picturesFrame.rowconfigure(1, weight=1)
@@ -93,7 +101,7 @@ class escenarioVideo:
         # Canvas
 
         self.commandsFrame = tk.LabelFrame(self.windowVideo, text='Drone commands')
-        self.commandsFrame.grid(row=1, column=1, padx=5, pady=5, sticky=N + S + E + W)
+        self.commandsFrame.grid(row=2, column=1, padx=5, pady=5, sticky=N + S + E + W)
 
         self.commandsFrame.rowconfigure(0, weight=1)
         self.commandsFrame.rowconfigure(1, weight=1)
@@ -177,9 +185,13 @@ class escenarioVideo:
         self.flipButton.grid(row=6, column=0, columnspan=2, padx=5, pady=5, sticky=N + S + E + W)
         self.flipButton['font'] = myFont3
 
+        self.joysticButton = Button(self.windowVideo, text="Joystic", bg='#FF6103',
+                                 fg='#F8F8FF', command = self.startJoystic)
+        self.joysticButton.grid(row=2, column=2, padx=5, pady=5, sticky=N + S + E + W)
+
         self.closeButton = Button(self.windowVideo, text="Close", bg='#367E18',
                                   fg='#F8F8FF', command=self.closeVideo)
-        self.closeButton.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky=N + S + E + W)
+        self.closeButton.grid(row=3, column=0, columnspan=3, padx=5, pady=5, sticky=N + S + E + W)
         self.closeButton['font'] = myFont3
         #################3333
 
@@ -306,30 +318,7 @@ class escenarioVideo:
         self.closeDButton.place(x=840, y=560, anchor="nw")
         self.closeDButton['font'] = myFont3'''
 
-        self.client = mqtt.Client("VideoService", transport="websockets")
-        self.client.tls_set(
-            ca_certs=None,
-            certfile=None,
-            keyfile=None,
-            cert_reqs=ssl.CERT_REQUIRED,
-            tls_version=ssl.PROTOCOL_TLS,
-            ciphers=None,
-        )
 
-        if selectedBroker == 0:
-            self.client.username_pw_set(
-                "dronsEETAC", "mimara1456."
-            )
-            self.client.connect("dronseetac.upc.edu", 8883)
-        else:
-            print('hivemq')
-            self.client.connect("broker.hivemq.com", 8884)
-
-        self.client.max_queued_messages_set(1)
-        self.client.max_inflight_messages_set(1)
-        self.client.subscribe('videoFrameAnna')
-        print('Waiting connection')
-        self.client.loop_start()
 
     def connect(self):
         try:
@@ -349,6 +338,33 @@ class escenarioVideo:
             messagebox.showerror("Error de conexión",
                                  "No se pudo conectar al dron. Por favor, inténtalo de nuevo.\nError: " + str(e),
                                  parent=self.windowVideo)
+
+    def connectBroker(self):
+        self.client = mqtt.Client("VideoService", transport="websockets")
+        self.client.tls_set(
+            ca_certs=None,
+            certfile=None,
+            keyfile=None,
+            cert_reqs=ssl.CERT_REQUIRED,
+            tls_version=ssl.PROTOCOL_TLS,
+            ciphers=None,
+        )
+
+        if self.selectedBroker == 0:
+            self.client.username_pw_set(
+                "dronsEETAC", "mimara1456."
+            )
+            self.client.connect("dronseetac.upc.edu", 8883)
+        else:
+            print('hivemq')
+            self.client.connect("broker.hivemq.com", 8884)
+
+        self.client.max_queued_messages_set(1)
+        self.client.max_inflight_messages_set(1)
+        self.client.subscribe('videoFrameAnna')
+        print('Waiting connection')
+        self.client.loop_start()
+
 
     def detecting(self):
         self.drone.streamon()
@@ -599,6 +615,80 @@ class escenarioVideo:
     def closeVideo(self):
         self.windowVideo.destroy()
         cv2.destroyAllWindows()
+
+
+    def joysticLoop (self):
+
+        while self.usingJoystic:
+            # Procesar eventos de pygame (necesario para actualizar el estado del joystick)
+            pygame.event.pump()
+
+            if self.joystick.get_button(8) == 1:
+                self.takeoff()
+            elif self.joystick.get_button(9) == 1:
+                self.land()
+            elif self.joystick.get_button(3) == 1:
+                self.recordVideo()
+            elif self.joystick.get_button(1) == 1:
+                self.stopVideo()
+            elif self.joystick.get_button(0) == 1:
+                self.flip()
+            elif self.take_off and self.connected:
+                lr = self.map_axis(self.joystick.get_axis(3))  # RC1
+                fb = self.map_axis(-self.joystick.get_axis(2))  # RC2
+                ud = self.map_axis(-self.joystick.get_axis(1))  # RC3
+                yaw = self.map_axis(self.joystick.get_axis(0))  # RC4
+
+                self.drone.send_rc_control(lr, fb, ud, yaw)
+
+            time.sleep(0.1)  # Pequeña pausa para no saturar la consola
+
+    def map_axis(self,value):
+        """
+        Convierte valor del eje (-1 a 1) a rango RC (-100 a 100)
+        """
+        if value < 0:
+            value = -value
+            return int(-value * value * value * 100)
+        else:
+            return int(value * value * value * 100)
+
+    def startJoystic (self):
+
+
+        if not self.usingJoystic:
+            # Inicializar pygame y el módulo de joystick
+            pygame.init()
+            pygame.joystick.init()
+
+            # Verificar si hay joysticks conectados
+            if pygame.joystick.get_count() == 0:
+                messagebox.showerror("Error",
+                                     "No hay joystic conectado",
+                                     parent=self.windowImage)
+
+                pygame.quit()
+            else:
+                # Obtener el primer joystick
+                self.joystick = pygame.joystick.Joystick(0)
+                self.joystick.init()
+                self.usingJoystic = True
+                self.connect()
+                threading.Thread (target = self.joysticLoop).start()
+                self.joysticButton["bg"]="green"
+                self.joysticButton["fg"] = "white"
+
+        else:
+            self.usingJoystic = False
+            self.joysticButton["bg"] = "dark orange"
+            self.joysticButton["fg"] = "black"
+            self.joystick.quit()
+            pygame.quit()
+
+
+
+
+
 
 
 '''

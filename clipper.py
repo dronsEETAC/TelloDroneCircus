@@ -64,11 +64,13 @@ class clipper:
 
         marco = 50
         alto, ancho = self.img.shape[:2]
+        print ('alto, ancho ', alto,ancho)
 
         a = self.grosor_borde_superior - marco
         b = alto - self.grosor_borde_inferior + marco
         c = self.grosor_borde_izquierdo -marco
         d = ancho - self.grosor_borde_derecho + marco
+        print ('a,b,c,d ', a,b,c,d)
 
 
         self.crop_img = self.img[a:b, c:d]
@@ -78,8 +80,12 @@ class clipper:
         formato_espanol = "%d/%m/%Y"
         fecha_formateada = fecha_actual.strftime(formato_espanol)
         frase = 'Gracias por su visita al campus de la UPC en Castelldefels ('+ fecha_formateada+')'
+        frase = self.textoRecordatorio.get() + ' ('+ fecha_formateada+')'
+        #frase = 'Gracias por su visita ('+ fecha_formateada+')'
         textSize = cv2.getTextSize( frase, fontFace=font, fontScale=1, thickness=2)
-        pos = (d - textSize [0][0])//2
+        print ('text size ', textSize)
+        pos = (d - c - textSize [0][0])//2
+        print ('pos ', pos)
         cv2.putText(self.crop_img, frase, (pos, 30), font, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
 
@@ -137,6 +143,8 @@ class clipper:
         self.ventana.rowconfigure(2, weight=1)
         self.ventana.rowconfigure(3, weight=1)
         self.ventana.rowconfigure(4, weight=1)
+        self.ventana.rowconfigure(5, weight=1)
+        self.ventana.rowconfigure(6, weight=1)
 
 
 
@@ -167,17 +175,25 @@ class clipper:
         self.grosor_right_slider.set(50)
         self.grosor_right_slider.grid(row=3, column=0, columnspan=4, padx=5, pady=5, sticky=N + S + E + W)
 
+        self.textoRecordatorioLbl = Label (self.ventana, text= 'Texto para la frase de recuerdo')
+        self.textoRecordatorioLbl.grid(row=4, column=0, columnspan=4, padx=5, pady=5, sticky=N + S + W)
+
+        self.textoRecordatorio = Entry (self.ventana)
+
+        self.textoRecordatorio.grid(row=5, column=0, columnspan=4, padx=5, pady=5, sticky=N + S + E + W)
+        self.textoRecordatorio.insert (0, "Gracies per la vostra visita a la Fira del Coneixement")
+
         self.cortarButton = Button(self.ventana, text="Cortar", bg= 'red', fg = 'white', command=self.cortar)
-        self.cortarButton.grid(row=4, column=0, padx=5, pady=5, sticky=N + S + E + W)
+        self.cortarButton.grid(row=6, column=0, padx=5, pady=5, sticky=N + S + E + W)
 
         self.descargarButton = Button(self.ventana, text="Descargar", bg= 'red', fg = 'white',command=self.descargar)
-        self.descargarButton.grid(row=4, column=1, padx=5, pady=5, sticky=N + S + E + W)
+        self.descargarButton.grid(row=6, column=1, padx=5, pady=5, sticky=N + S + E + W)
 
         self.reiniciarButton = Button(self.ventana, text="Reiniciar", bg= 'red', fg = 'white',command=self.reiniciar)
-        self.reiniciarButton.grid(row=4, column=2, padx=5, pady=5, sticky=N + S + E + W)
+        self.reiniciarButton.grid(row=6, column=2, padx=5, pady=5, sticky=N + S + E + W)
 
         self.cerrarButton = Button(self.ventana, text="Cerrar",bg= 'red', fg = 'white', command=self.cerrar)
-        self.cerrarButton.grid(row=4, column=3, padx=5, pady=5, sticky=N + S + E + W)
+        self.cerrarButton.grid(row=6, column=3, padx=5, pady=5, sticky=N + S + E + W)
 
         self.img = cv2.imread('pano/result.jpg')
 

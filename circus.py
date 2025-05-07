@@ -51,6 +51,10 @@ drone = Tello()
 configuracion_escenario = [0,0,0,0]
 
 enterButton = Button(root, text="El circo de las poses", height=1, bg='#367E18', fg='#FFE9A0', width=20, command=enterCircoPoses)
+
+
+
+
 enterButton['font'] = myFont
 enterButton.place(x=500, y=470, anchor="nw")
 
