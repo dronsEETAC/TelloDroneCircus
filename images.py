@@ -15,6 +15,7 @@ import paho.mqtt.client as mqtt
 import threading
 from Gallery import GalleryMedia
 import pygame
+import torch
 class escenarioImagenes:
 
     def Open(self, master, selectedBroker):
@@ -287,14 +288,14 @@ class escenarioImagenes:
 
     def left(self):
         if self.take_off and self.connected:
-            self.drone.go_xyz_speed(0, -50, 0, 100)
+            self.drone.go_xyz_speed(0, 50, 0, 100)
             time.sleep(1)
         else:
             messagebox.showwarning("Error", "Primero despega el dron", parent=self.windowImage)
 
     def right(self):
         if self.take_off and self.connected:
-            self.drone.go_xyz_speed(0, 50, 0, 100)
+            self.drone.go_xyz_speed(0, -50, 0, 100)
             time.sleep(1)
         else:
             messagebox.showwarning("Error", "Primero despega el dron", parent=self.windowImage)
@@ -487,9 +488,92 @@ class escenarioImagenes:
             self.windowImage.destroy()
             cv2.destroyAllWindows()'''
 
+    def resalar_objetos (self, frame):
+        global model
+        BANANA_CLASS_ID = 46
+        CARROT_CLASS_ID = 51
+        DONUT_CLASS_ID = 54
+        FORK_CLASS_ID = 42
+        CLOCK_CLASS_ID = 74
+        BEAR_CLASS_ID = 21
+        STOP_CLASS_ID = 11
+        RAQUET_CLASS_ID = 38
+        # Convertir frame a RGB para YOLO
+        img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
+        # Inferencia con el modelo
+        results = model(img_rgb)
+        # Procesar resultados
+        for *box, conf, cls in results.xyxy[0]:
+            if int(cls.item()) == BANANA_CLASS_ID:
+                x1, y1, x2, y2 = map(int, box)
+                label = f"Banana {conf:.2f}"
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                cv2.putText(frame, label, (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                print("BANANA")
+            elif int(cls.item()) == CLOCK_CLASS_ID:
+                x1, y1, x2, y2 = map(int, box)
+                label = f"Clock {conf:.2f}"
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                cv2.putText(frame, label, (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                print("RELOJ")
+            elif int(cls.item()) == DONUT_CLASS_ID:
+                x1, y1, x2, y2 = map(int, box)
+                label = f"Donut {conf:.2f}"
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                cv2.putText(frame, label, (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                print("DONUT")
+            elif int(cls.item()) == CARROT_CLASS_ID:
+                x1, y1, x2, y2 = map(int, box)
+                label = f"Carrot {conf:.2f}"
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                cv2.putText(frame, label, (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                print("Zanahoria")
+            elif int(cls.item()) == FORK_CLASS_ID:
+                x1, y1, x2, y2 = map(int, box)
+                label = f"Fork {conf:.2f}"
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                cv2.putText(frame, label, (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                print("TENEDOR")
+            elif int(cls.item()) == BEAR_CLASS_ID:
+                x1, y1, x2, y2 = map(int, box)
+                label = f"Bear {conf:.2f}"
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                cv2.putText(frame, label, (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                print("OSO")
+            elif int(cls.item()) == RAQUET_CLASS_ID:
+                x1, y1, x2, y2 = map(int, box)
+                label = f"Raquet {conf:.2f}"
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                cv2.putText(frame, label, (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                print("REQUETA")
+            elif int(cls.item()) == STOP_CLASS_ID:
+                x1, y1, x2, y2 = map(int, box)
+                label = f"Stop {conf:.2f}"
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                cv2.putText(frame, label, (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                print("STOP")
+        return frame
 
     def detecting(self):
+        global model
+
+        # Cargar el modelo YOLOv5 preentrenado de Ultralytics
+        model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+        for class_id, class_name in model.names.items():
+            print(f"{class_id} → {class_name}")
+        model.eval()
+
+
+
         self.drone.streamon()
         cv2.namedWindow("Tello Camera", cv2.WINDOW_NORMAL)
         cv2.resizeWindow("Tello Camera", 640, 480)
@@ -498,6 +582,9 @@ class escenarioImagenes:
             frame = self.drone.get_frame_read().frame  # Captura un frame desde la cámara del Tello
             #frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame = self.resaltar_colores_principales(frame)
+            frame = self.resalar_objetos(frame)
+
+
             cv2.imshow("Tello Camera", frame)  # Muestra el frame en una ventana
             cv2.waitKey(1)
 
@@ -531,9 +618,9 @@ class escenarioImagenes:
         """
         if value < 0:
             value = -value
-            return int(-value * value * value * 100)
+            return int(-value * value * value*value * 100)
         else:
-            return int(value * value * value * 100)
+            return int(value * value * value * value* 100)
 
     def startJoystic (self):
 
